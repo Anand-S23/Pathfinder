@@ -20,20 +20,76 @@ internal void HandleEvent(SDL_Event *event)
             Global_Running = 0;
         } break;
 
+        case SDL_KEYDOWN: 
+        {
+            if (event->key.repeat == 0)
+            {
+                switch (event->key.keysym.scancode)
+                {
+                    case SDL_SCANCODE_LCTRL:
+                    {
+                        Global_Platform.ctrl_down = 1;
+                    } break;
+
+                    case SDL_SCANCODE_LSHIFT:
+                    {
+                        Global_Platform.shift_down = 1;
+                    } break;
+
+                    case SDL_SCANCODE_SPACE:
+                    {
+                        Global_Platform.space_down = 1;
+                    } break;
+                }
+            }
+        } break;
+
+        case SDL_KEYUP: 
+        {
+            if (event->key.repeat == 0)
+            {
+                switch (event->key.keysym.scancode)
+                {
+                    case SDL_SCANCODE_LCTRL:
+                    {
+                        Global_Platform.ctrl_down = 0;
+                    } break;
+
+                    case SDL_SCANCODE_LSHIFT:
+                    {
+                        Global_Platform.shift_down = 0;
+                    } break;
+
+                    case SDL_SCANCODE_SPACE:
+                    {
+                        Global_Platform.space_down = 0;
+                    } break;
+                }
+            }
+        } break;
+
         case SDL_MOUSEBUTTONDOWN:
         {
-            Global_Platform.left_mouse_down = 
-                (event->button.button == SDL_BUTTON_LEFT) ? 1 : 0; 
-            Global_Platform.right_mouse_down = 
-                (event->button.button == SDL_BUTTON_RIGHT) ? 1 : 0; 
+            if (event->button.button == SDL_BUTTON_LEFT)
+            {
+                Global_Platform.left_mouse_down = 1; 
+            }
+            else if (event->button.button == SDL_BUTTON_RIGHT)
+            {
+                Global_Platform.right_mouse_down = 1;
+            }
         } break;
 
         case SDL_MOUSEBUTTONUP:
         {
-            Global_Platform.left_mouse_down = 
-                (event->button.button == SDL_BUTTON_LEFT) ? 0 : 1; 
-            Global_Platform.right_mouse_down = 
-                (event->button.button == SDL_BUTTON_RIGHT) ? 0 : 1; 
+            if (event->button.button == SDL_BUTTON_LEFT)
+            {
+                Global_Platform.left_mouse_down = 0; 
+            }
+            else if (event->button.button == SDL_BUTTON_RIGHT)
+            {
+                Global_Platform.right_mouse_down = 0;
+            }
         } break;
 
         case SDL_MOUSEMOTION:
@@ -54,11 +110,11 @@ int main(int argc, char** argv)
     SDL_Window *window = SDL_CreateWindow("A* Algorithim",
                                           SDL_WINDOWPOS_UNDEFINED,
                                           SDL_WINDOWPOS_UNDEFINED,
-                                          1280, 720, 0);
+                                          721, 721, 0);
 
     if (window)
     {
-        SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 
+        SDL_Renderer *renderer = SDL_CreateRenderer(window, -1,
                                                     SDL_RENDERER_ACCELERATED);
         
         Global_Platform.permanent_storage_size = Megabytes(64); 

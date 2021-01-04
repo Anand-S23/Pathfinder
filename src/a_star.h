@@ -1,16 +1,50 @@
 #ifndef A_STAR_H 
 #define A_STAR_H
 
+#define GRID_W (720 / 20)
+#define GRID_H (720 / 20)
+#define MAX (GRID_W * GRID_H)
+
+#define CELL_W (720 / GRID_W)
+#define CELL_H (720 / GRID_H)
+
 typedef enum mode
 {
     MODE_menu,
-    MODE_freeplay
+    MODE_editor, 
+    MODE_finding
 } mode;
 
-typedef struct game_state
+typedef enum cell_type
+{
+    TYPE_walkable,
+    TYPE_obstacle
+} cell_type;
+
+typedef struct cell
+{
+    int i; 
+    int j;
+
+    cell_type type;
+    f32 g_cost; 
+    f32 h_cost;
+    struct cell* parent;
+    struct cell* neighbors[8];
+} cell;
+
+typedef struct app_state
 {
     memory_arena permanent_arena;
     memory_arena transient_arena;
-} game_state;
+
+    mode current_mode;
+    cell grid[GRID_W][GRID_H];
+    cell open[MAX];
+    cell closed[MAX];
+
+    cell *start;
+    cell *end;
+} app_state;
 
 #endif
