@@ -18,6 +18,7 @@ typedef enum mode
 typedef enum cell_type
 {
     TYPE_walkable,
+    TYPE_visited,
     TYPE_obstacle
 } cell_type;
 
@@ -27,8 +28,8 @@ typedef struct cell
     int j;
 
     cell_type type;
-    f32 g_cost; 
-    f32 h_cost;
+    f32 f_local_cost; 
+    f32 f_global_cost;
     struct cell* parent;
     struct cell* neighbors[8];
 } cell;

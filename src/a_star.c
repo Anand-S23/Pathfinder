@@ -1,3 +1,5 @@
+#include <math.h>
+
 #include "a_star.h"
 #include "renderer.c"
 
@@ -58,6 +60,13 @@ internal void AddNeighbors(app_state *state, cell *cell)
     }
 }
 
+internal f32 hueristic(cell *current, cell *end)
+{
+    // TODO: mess around with this function to see difference in result
+    return sqrtf((current->i - end->i)*(current->i - end->i) +
+                 (current->j - end->j)*(current->j - end->j));
+}
+
 internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
 {
     app_state *state = (app_state *)platform->permanent_storage;
@@ -78,14 +87,14 @@ internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
                 current_cell->i = i; 
                 current_cell->j = j;
                 current_cell->type = TYPE_walkable;
-                current_cell->g_cost = 0.f;
-                current_cell->h_cost = 0.f;
+                current_cell->f_local_cost = INFINITY;
+                current_cell->f_global_cost = INFINITY;
                 current_cell->parent = NULL;
                 AddNeighbors(state, current_cell);
             }
         }
 
-        state->current_mode = MODE_editor;
+        state->current_mode = MODE_editor; // NOTE: This will be changed to MODE_menu later on
         state->start = &state->grid[0][0];
         state->end = &state->grid[GRID_H - 1][GRID_W - 1];
 
@@ -132,18 +141,39 @@ internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
         }
         else if (platform->right_mouse_down)
         {
-            int i = platform->mouse_x / CELL_W; 
-            int j = platform->mouse_y / CELL_H; 
+            int i = platform->mouse_x / CELL_W;
+            int j = platform->mouse_y / CELL_H;
 
             if (CellIsValid(i, j))
             {
                 state->grid[j][i].type = TYPE_walkable;
             }
         }
+        else if (platform->space_down)
+        {
+            if (state->current_mode == MODE_editor)
+            {
+                state->current_mode = MODE_finding;
+            }
+            else if (state->current_mode == MODE_finding)
+            {
+                state->current_mode = MODE_editor;
+            }
+        }
+    }
+
+    // Start path finding if current_mode is MODE_finding
+    if (state->current_mode == MODE_finding)
+    {
+        cell *current_node = state->start;
+        state->start->f_local_cost = 0.f;
+        state->start->f_global_cost = hueristic(state->start, state->end);
+
     }
 
     ClearScreen(renderer, v4(0, 0, 0, 255));
 
+    // Fill in the start (green) and end (blue) cells
     RenderFilledRect(renderer, v4(0, 255, 0, 255),
                      v4(state->start->i * CELL_W, state->start->j * CELL_H, 
                         CELL_W, CELL_H));
@@ -151,12 +181,14 @@ internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
     RenderFilledRect(renderer, v4(0 , 0, 255, 255),
                      v4(state->end->i * CELL_W, state->end->j * CELL_H, 
                         CELL_W, CELL_H));
+
     // Render Grid
     SDL_SetRenderDrawColor(renderer, 150, 150, 150, 255); 
     for (int j = 0; j < (GRID_H + 1); ++j)
     {
         for (int i = 0; i < (GRID_W + 1); ++i)
         {
+            // The cell is filled if it is an obstacle
             if (state->grid[j][i].type == TYPE_obstacle)
             {
                 RenderFilledRect(renderer, v4(150, 150, 150, 255), 
@@ -170,6 +202,12 @@ internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
                                0,   j * CELL_H,
                                720, j * CELL_H);
         }
+    }
+
+    // Render menu on top if current_mode is menu
+    if (state->current_mode == MODE_menu)
+    {
+        state->current_mode = MODE_editor;
     }
 
     SDL_RenderPresent(renderer);
