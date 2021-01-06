@@ -25,6 +25,13 @@ typedef i32 b32;
 #define WINDOW_WIDTH 720
 #define WINDOW_HEIGHT 720
 
+#define GRID_W (720 / 180)
+#define GRID_H (720 / 180)
+#define MAX (GRID_W * GRID_H)
+
+#define CELL_W (720 / GRID_W)
+#define CELL_H (720 / GRID_H)
+
 typedef struct platform
 {
     // Memory

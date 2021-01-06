@@ -3,11 +3,10 @@
 
 typedef struct list
 {
-    // TODO: look into metaprograming to implement 
-    // generic item for list, so the cell struct
-    // does not have to be in file
-    int array_position;
-    int size; 
+    cell *data[MAX + 1];
+    int start;
+    int size;
 } list;
+
 
 #endif

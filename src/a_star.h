@@ -1,13 +1,6 @@
 #ifndef A_STAR_H 
 #define A_STAR_H
 
-#define GRID_W (720 / 20)
-#define GRID_H (720 / 20)
-#define MAX (GRID_W * GRID_H)
-
-#define CELL_W (720 / GRID_W)
-#define CELL_H (720 / GRID_H)
-
 typedef enum mode
 {
     MODE_menu,
@@ -32,7 +25,10 @@ typedef struct cell
     f32 f_global_cost;
     struct cell* parent;
     struct cell* neighbors[8];
+    int neighbors_count;
 } cell;
+
+#include "list.h"
 
 typedef struct app_state
 {
@@ -41,7 +37,7 @@ typedef struct app_state
 
     mode current_mode;
     cell grid[GRID_W][GRID_H];
-    cell open[MAX];
+    list open;
     cell closed[MAX];
 
     cell *start;
