@@ -71,6 +71,25 @@ internal f32 hueristic(cell *current, cell *end)
                  (current->j - end->j)*(current->j - end->j));
 }
 
+internal void ResetGrid(app_state *state)
+{
+    for (int j = 0; j < GRID_H; ++j)
+    {
+        for (int i = 0; i < GRID_W; ++i)
+        {
+            cell *current_cell = &state->grid[j][i];
+            current_cell->type = (current_cell->type == TYPE_obstacle) ? TYPE_obstacle : TYPE_walkable;
+            current_cell->f_local_cost = INFINITY;
+            current_cell->f_global_cost = INFINITY;
+            current_cell->parent = NULL;
+        }
+    }
+
+    Clear(&state->open);
+    state->generating = 0; 
+    state->generated = 0;
+}
+
 internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
 {
     app_state *state = (app_state *)platform->permanent_storage;
@@ -102,6 +121,8 @@ internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
         state->start = &state->grid[0][0];
         state->end = &state->grid[GRID_H - 1][GRID_W - 1];
         state->open = CreateList();
+        state->generating = 0; 
+        state->generated = 0;
 
         platform->initialized = 1;
     }
@@ -156,13 +177,13 @@ internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
         }
         else if (platform->space_down)
         {
-            if (state->current_mode == MODE_editor)
+            if (state->generated)
+            {
+                ResetGrid(state);
+            }
+            else if (state->current_mode == MODE_editor)
             {
                 state->current_mode = MODE_finding;
-            }
-            else if (state->current_mode == MODE_finding)
-            {
-                state->current_mode = MODE_editor;
             }
         }
     }
@@ -170,55 +191,70 @@ internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
     // Start path finding if current_mode is MODE_finding
     if (state->current_mode == MODE_finding)
     {
-        cell *current_cell = state->start;
-        state->start->f_local_cost = 0.f;
-        state->start->f_global_cost = hueristic(state->start, state->end);
+        local_persist cell *current_cell;
+        local_persist linked_list *not_tested;
 
-        linked_list *not_tested = &state->open;
-        PushBack(not_tested, current_cell);
-
-        while(!Empty(not_tested) && current_cell != state->end)
+        if (!state->generating)
         {
-            Sort(not_tested);
+            current_cell = state->start;
+            state->start->f_local_cost = 0.f;
+            state->start->f_global_cost = hueristic(state->start, state->end);
 
-            // remove all the visited cells from the list
-            while (!Empty(not_tested) && 
-                   Front(not_tested)->type == TYPE_visited)
-            {
-                PopFront(not_tested);
-            } 
+            not_tested = &state->open;
+            PushBack(not_tested, current_cell);
 
-            if (Empty(not_tested))
+            state->generating = 1;
+        }
+        else
+        {
+            if (!Empty(not_tested) && current_cell != state->end)
             {
-                break;
+                Sort(not_tested);
+
+                // remove all the visited cells from the list
+                while (!Empty(not_tested) && 
+                    not_tested->head->data->type == TYPE_visited)
+                {
+                    PopFront(not_tested);
+                } 
+
+                if (Empty(not_tested))
+                {
+                    goto done;
+                }
+
+                current_cell = not_tested->head->data;
+                current_cell->type = TYPE_visited;
+
+                for (int i = 0; i < current_cell->neighbors_count; ++i)
+                {
+                    cell *neighbor = current_cell->neighbors[i];
+                    if (neighbor->type == TYPE_walkable)
+                    {
+                        PushBack(not_tested, neighbor);
+                    }
+
+                    f32 test_distance = current_cell->f_local_cost + 
+                                        hueristic(current_cell, neighbor);
+
+                    if (test_distance < neighbor->f_local_cost)
+                    {
+                        neighbor->parent = current_cell;
+                        neighbor->f_local_cost = test_distance;
+
+                        neighbor->f_global_cost = 
+                            neighbor->f_local_cost + hueristic(neighbor, state->end);
+                    }
+                }
             }
-
-            current_cell = Front(not_tested);
-            current_cell->type = TYPE_visited;
-
-            for (int i = 0; i < current_cell->neighbors_count; ++i)
+            else
             {
-                cell *neighbor = current_cell->neighbors[i];
-                if (neighbor->type == TYPE_walkable)
-                {
-                    PushBack(not_tested, neighbor);
-                }
-
-                f32 test_distance = current_cell->f_local_cost + 
-                                    hueristic(current_cell, neighbor);
-
-                if (test_distance < neighbor->f_local_cost)
-                {
-                    neighbor->parent = current_cell;
-                    neighbor->f_local_cost = test_distance;
-
-                    neighbor->f_global_cost = 
-                        neighbor->f_local_cost + hueristic(neighbor, state->end);
-                }
+                done:;
+                state->generated = 1;
+                state->generating = 0;
+                state->current_mode = MODE_editor;
             }
         }
-
-        state->current_mode = MODE_editor;
     }
 
     ClearScreen(renderer, v4(0, 0, 0, 255));
@@ -260,6 +296,26 @@ internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
         }
     }
 
+    if (state->generated)
+    {
+        // Render the best path
+        if (state->end != NULL)
+		{
+			cell *current_cell = state->end;
+			while (current_cell->parent != NULL)
+			{
+                RenderFilledRect(renderer, v4(0, 255, 255, 255), 
+                                 v4(current_cell->i * CELL_W, current_cell->j * CELL_H, CELL_W, CELL_H));
+				
+				current_cell = current_cell->parent;
+			}
+		}
+
+        RenderFilledRect(renderer, v4(0, 255, 255, 255),
+                        v4(state->start->i * CELL_W, state->start->j * CELL_H, 
+                            CELL_W, CELL_H));
+    }
+
     // Render menu on top if current_mode is menu
     if (state->current_mode == MODE_menu)
     {
@@ -267,5 +323,5 @@ internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
     }
 
     SDL_RenderPresent(renderer);
-    SDL_Delay(1);
+    SDL_Delay(50);
 }

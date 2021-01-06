@@ -41,6 +41,9 @@ typedef struct app_state
 
     cell *start;
     cell *end;
+
+    b32 generating; 
+    b32 generated;
 } app_state;
 
 #endif

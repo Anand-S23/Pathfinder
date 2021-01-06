@@ -19,6 +19,21 @@ internal linked_list CreateList()
     return ret_list;
 }
 
+internal void Clear(linked_list *ll)
+{
+    node *current_node = ll->head;
+    ll->tail = NULL;
+    ll->size  = 0;
+
+    while (current_node != NULL)
+    {
+        node *temp = current_node; 
+        current_node = current_node->next;
+        ll->head = current_node;
+        free(temp);
+    }
+}
+
 internal void Push(linked_list *ll, cell *item)
 {
     node *new_node = CreateNode(item);
