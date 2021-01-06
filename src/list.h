@@ -1,12 +1,18 @@
 #ifndef LIST_H
 #define LIST_H
 
-typedef struct list
+typedef struct node
 {
-    cell *data[MAX + 1];
-    int start;
+    struct node* next;
+    cell* data;
+} node;
+
+typedef struct linked_list
+{
+    node *head; 
+    node *tail;
     int size;
-} list;
+} linked_list;
 
 
 #endif

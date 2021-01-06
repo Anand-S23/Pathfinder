@@ -1,80 +1,157 @@
 #include "list.h"
 
-// NOTE: The list will not resize, it allocates the 
-// max amount of memory that it requires 
-
-internal list CreateList()
+internal node *CreateNode(cell *data)
 {
-    list result = {0};
+    node *ret_node = (node *)malloc(sizeof(node));
+    ret_node->next = NULL;
+    ret_node->data = data;
+    return ret_node;
+}
+
+internal linked_list CreateList()
+{
+    linked_list ret_list = {0};
     {
-        result.start = 0;
-        result.size = 0;
+        ret_list.head = NULL;
+        ret_list.tail = NULL;
+        ret_list.size = 0;
+    }
+    return ret_list;
+}
+
+internal void Push(linked_list *ll, cell *item)
+{
+    node *new_node = CreateNode(item);
+
+    if (ll->head == NULL)
+    {
+        ll->head = new_node;
+    }
+    else if (ll->tail == NULL)
+    {
+        ll->tail = ll->head;
+        ll->head = new_node;
+        ll->head->next = ll->tail;
+    }
+    else
+    {
+        new_node->next = ll->head; 
+        ll->head = new_node;
     }
 
-    return result;
+    ++ll->size;
 }
 
-internal void PushBack(list *l, cell *item)
+internal void PushBack(linked_list *ll, cell *item)
 {
-    l->data[l->size++] = item;
-}
+    node *new_node = CreateNode(item);
 
-internal cell *PopFront(list *l) 
-{
-    cell *result = l->data[l->start];
-    l->start++;
-    l->size--;
-    return result;
-}
-
-internal cell *Front(list *l) 
-{
-    return l->data[l->start];
-}
-
-internal b32 Empty(list *l)
-{
-    return (l->size == 0);
-}
-
-// Quick Sort
-
-void Swap(cell *a, cell *b)
-{
-    cell temp = *a; 
-    *a = *b;
-    *b = temp;
-}
-
-int Partition(cell **arr, int left, int right)
-{
-    int pivot = arr[right]->f_global_cost;
-    int j = (left - 1);
-
-    for (int i = left; i < right; ++i)
+    if (ll->head == NULL)
     {
-        if (arr[i]->f_global_cost <= pivot)
-        {
-            ++j;
-            Swap(arr[j], arr[i]);
-        }
+        ll->head = new_node;
+    }
+    else if (ll->tail == NULL)
+    {
+        ll->tail = new_node;
+        ll->head->next = ll->tail;
+    }
+    else
+    {
+        ll->tail->next = new_node; 
+        ll->tail = new_node;
     }
 
-    Swap(arr[j + 1], arr[right]);
-    return ++j; 
+    ++ll->size;
 }
 
-void Sort(list *l, int left, int right)
+internal void PopFront(linked_list *ll) 
 {
-    if (l->size < 1)
-    {
-        cell **arr = l->data;
+    node *temp = ll->head; 
+    ll->head = ll->head->next; 
+    free(temp);
+    --ll->size;
+}
 
-        if (left < right)
-        {
-            int partition_index = Partition(arr, left, right);
-            Sort(l, left, partition_index - 1);
-            Sort(l, partition_index + 1, right);
-        }
+internal cell *Front(linked_list *ll)
+{
+    return ll->head->data;
+}
+
+internal b32 Empty(linked_list *ll)
+{
+    return (ll->size == 0);
+}
+
+// Merge Sort
+internal void Split(node *source, node **front_ref, node **back_ref)
+{
+    node* fast; 
+    node* slow; 
+    slow = source; 
+    fast = source->next; 
+  
+    while (fast != NULL) 
+    { 
+        fast = fast->next; 
+        if (fast != NULL) 
+        { 
+            slow = slow->next; 
+            fast = fast->next; 
+        } 
+    } 
+  
+    *front_ref = source; 
+    *back_ref = slow->next; 
+    slow->next = NULL; 
+}
+
+internal node *SortedMerge(node* a, node* b) 
+{ 
+    node* result = NULL; 
+  
+    if (a == NULL) 
+    {
+        return b; 
     }
+    else if (b == NULL) 
+    {
+        return a; 
+    }
+  
+    if (a->data->f_global_cost <= b->data->f_global_cost) 
+    { 
+        result = a; 
+        result->next = SortedMerge(a->next, b); 
+    } 
+    else 
+    { 
+        result = b; 
+        result->next = SortedMerge(a, b->next); 
+    } 
+
+    return result; 
+} 
+
+internal void MergeSort(node **head_ref)
+{
+    node *head = *head_ref;
+    node *a; 
+    node *b;
+
+    if (head == NULL || head->next == NULL)
+    {
+        return;
+    }
+
+    Split(head, &a, &b);
+
+    MergeSort(&a);
+    MergeSort(&b);
+
+    *head_ref = SortedMerge(a, b);
+}
+
+internal void Sort(linked_list *ll)
+{
+    MergeSort(&ll->head);
 }

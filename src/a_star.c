@@ -174,18 +174,16 @@ internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
         state->start->f_local_cost = 0.f;
         state->start->f_global_cost = hueristic(state->start, state->end);
 
-        list *not_tested = &state->open;
+        linked_list *not_tested = &state->open;
         PushBack(not_tested, current_cell);
 
         while(!Empty(not_tested) && current_cell != state->end)
         {
-            int left = not_tested->start;
-            int right = not_tested->start + not_tested->size - 1;
-            Sort(not_tested, left, right);
+            Sort(not_tested);
 
             // remove all the visited cells from the list
             while (!Empty(not_tested) && 
-                   not_tested->data[not_tested->start]->type == TYPE_visited)
+                   Front(not_tested)->type == TYPE_visited)
             {
                 PopFront(not_tested);
             } 
@@ -195,7 +193,7 @@ internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
                 break;
             }
 
-            current_cell = not_tested->data[not_tested->start];
+            current_cell = Front(not_tested);
             current_cell->type = TYPE_visited;
 
             for (int i = 0; i < current_cell->neighbors_count; ++i)
@@ -212,7 +210,7 @@ internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
                 if (test_distance < neighbor->f_local_cost)
                 {
                     neighbor->parent = current_cell;
-                    neighbor->f_global_cost = test_distance;
+                    neighbor->f_local_cost = test_distance;
 
                     neighbor->f_global_cost = 
                         neighbor->f_local_cost + hueristic(neighbor, state->end);
@@ -246,7 +244,13 @@ internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
                 RenderFilledRect(renderer, v4(150, 150, 150, 255), 
                                  v4(i * CELL_W, j * CELL_H, CELL_W, CELL_H));
             }
+            else if (state->grid[j][i].type == TYPE_visited)
+            {
+                RenderFilledRect(renderer, v4(255, 255, 0, 255), 
+                                 v4(i * CELL_W, j * CELL_H, CELL_W, CELL_H));
+            }
 
+            SDL_SetRenderDrawColor(renderer, 150, 150, 150, 255);
             SDL_RenderDrawLine(renderer,
                                i * CELL_W, 0,
                                i * CELL_W, 720);

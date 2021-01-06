@@ -37,8 +37,7 @@ typedef struct app_state
 
     mode current_mode;
     cell grid[GRID_W][GRID_H];
-    list open;
-    cell closed[MAX];
+    linked_list open;
 
     cell *start;
     cell *end;
