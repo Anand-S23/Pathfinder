@@ -117,7 +117,7 @@ internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
             }
         }
 
-        state->current_mode = MODE_editor; // NOTE: This will be changed to MODE_menu later on
+        state->current_mode = MODE_menu; 
         state->start = &state->grid[0][0];
         state->end = &state->grid[GRID_H - 1][GRID_W - 1];
         state->open = CreateList();
