@@ -6,7 +6,7 @@
 #include "win32_platform.h"
 #include "math.h"
 #include "memory.c"
-#include "a_star.c"
+#include "app.c"
 
 global b32 Global_Running;
 global platform Global_Platform = {0};

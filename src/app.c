@@ -1,6 +1,6 @@
 #include <math.h>
 
-#include "a_star.h"
+#include "app.h"
 #include "renderer.c"
 #include "list.c"
 

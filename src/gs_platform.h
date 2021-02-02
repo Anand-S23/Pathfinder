@@ -34,6 +34,11 @@ typedef i32 b32;
 
 typedef struct platform
 {
+    // Renderer
+    gs_command_buffer_t command_buffer;
+    gs_immediate_draw_t immediate_draw;
+    gs_asset_manager_t  asset_manager;
+
     // Memory
     void *permanent_storage;
     u32   permanent_storage_size;
