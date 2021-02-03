@@ -1,5 +1,5 @@
-#ifndef A_STAR_H 
-#define A_STAR_H
+#ifndef APP_H
+#define APP_H
 
 typedef enum mode
 {
