@@ -41,7 +41,7 @@ typedef struct app_state
     gs_command_buffer_t command_buffer;
     gs_immediate_draw_t renderer;
 
-    cell_type map[MAP_H][MAP_W]
+    cell_type map[MAP_H][MAP_W];
 } app_state; 
 
 #endif
