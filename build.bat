@@ -15,7 +15,7 @@ set SDL_LIB=%SDL%\lib\x64\SDL2.lib %SDL%\lib\x64\SDL2main.lib %SDL%\lib\x64\SDL2
 
 rem Source files
 :: set src_main=..\src\win32_platform.c
-set src_main=..\src\gs_platform.c
+set src_main=..\src\pathfinder.c
 
 rem OS Libraries
 set os_libs= opengl32.lib kernel32.lib user32.lib ^
