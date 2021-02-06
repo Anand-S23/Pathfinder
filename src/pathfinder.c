@@ -9,7 +9,6 @@
 #include <math.h>
 
 #include "pathfinder.h"
-#include "math.h"
 #include "ui.c"
 
 global app_state state = {0};
@@ -31,6 +30,15 @@ internal void UpdateApp()
     int mouse_x, mouse_y;
     gs_platform_mouse_position(&mouse_x, &mouse_y);
     // printf("x: %d, y: %d\n", mouse_x, mouse_y);
+
+    input ui_input = {0};
+    {
+        ui_input.mouse_x = mouse_x;
+        ui_input.mouse_y = mouse_y;
+        ui_input.left_mouse_down = gs_platform_mouse_down(GS_MOUSE_LBUTTON);
+        ui_input.right_mouse_down = gs_platform_mouse_down(GS_MOUSE_RBUTTON);
+    }
+            
     
     // TODO: Handle Input
     if (mouse_x >= 0 && mouse_x <= 720 &&
@@ -87,7 +95,14 @@ internal void UpdateApp()
     gsi_text(&state.renderer, 730.f, 200.f, "Pathfinder",
              NULL, false, 255, 255, 255, 255);
 
-    // TODO: Alogrithm choose ui
+    UIBeginFrame(&state.ui, &state.renderer, &ui_input);
+    {
+        local_persist ui_id selected = UIIDNull();
+
+        ui_id bfs = UIOptionButton(&state.ui, selected, UIIDGen(), "BFS",
+                                   gs_v2(), gs_v2(), gs_color());
+    }
+    UIEndFram(&state.ui);
 
     gs_graphics_submit_command_buffer(&state.command_buffer);
 }

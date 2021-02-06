@@ -36,10 +36,20 @@ typedef enum cell_type
     CELL_TYPE_obstacle
 } cell_type;
 
+typedef struct input
+{
+    int mouse_x;
+    int mouse_y;
+    b32 left_mouse_down;
+    b32 right_mouse_down;
+} input;
+
 typedef struct app_state
 {
     gs_command_buffer_t command_buffer;
     gs_immediate_draw_t renderer;
+
+    ui ui;
 
     cell_type map[MAP_H][MAP_W];
 } app_state; 
