@@ -30,12 +30,16 @@ typedef struct ui_widget
     gs_vec2 rect_tl;
     f32 t_hot;
     f32 t_active;
-} ui_widget;
 
-typedef struct ui_option
-{
-    ui_id selected;
-}
+    union
+    {
+        struct option
+        {
+            b32 is_active;
+            gs_color_t color;
+        } option;
+    };
+} ui_widget;
 
 typedef struct ui
 {

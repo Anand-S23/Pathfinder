@@ -66,6 +66,17 @@ internal void UpdateApp()
 
     gsi_camera2D(&state.renderer);
 
+    UIBeginFrame(&state.ui, &state.renderer, &ui_input);
+    {
+        local_persist ui_id selected = {0};
+
+        ui_id bfs = UIOptionButton(&state.ui, &selected, UIIDGen(), "BFS",
+                                   gs_v2(820.f, 100.f), gs_v2(720.f, 0.f),
+                                   gs_color(100, 100, 100, 255));
+    }
+
+    UIEndFrame(&state.ui);
+
     // Renderer the map
     for (int j = 0; j < (MAP_H + 1); ++j)
     {
@@ -94,15 +105,6 @@ internal void UpdateApp()
 
     gsi_text(&state.renderer, 730.f, 200.f, "Pathfinder",
              NULL, false, 255, 255, 255, 255);
-
-    UIBeginFrame(&state.ui, &state.renderer, &ui_input);
-    {
-        local_persist ui_id selected = UIIDNull();
-
-        ui_id bfs = UIOptionButton(&state.ui, selected, UIIDGen(), "BFS",
-                                   gs_v2(), gs_v2(), gs_color());
-    }
-    UIEndFram(&state.ui);
 
     gs_graphics_submit_command_buffer(&state.command_buffer);
 }
