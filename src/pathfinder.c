@@ -71,8 +71,30 @@ internal void UpdateApp()
         local_persist ui_id selected = {0};
 
         ui_id bfs = UIOptionButton(&state.ui, &selected, UIIDGen(), "BFS",
-                                   gs_v2(820.f, 100.f), gs_v2(720.f, 0.f),
-                                   gs_color(100, 100, 100, 255));
+                                   gs_v2(970.f, 175.f), gs_v2(750.f, 100.f),
+                                   gs_color(255, 204, 18, 255));
+
+        ui_id dfs = UIOptionButton(&state.ui, &selected, UIIDGen(), "DFS",
+                                   gs_v2(970.f, 275.f), gs_v2(750.f, 200.f),
+                                   gs_color(255, 204, 18, 255));
+
+        ui_id dj = UIOptionButton(&state.ui, &selected, UIIDGen(), "DFS",
+                                   gs_v2(970.f, 375.f), gs_v2(750.f, 300.f),
+                                   gs_color(255, 204, 18, 255));
+
+        ui_id a_star = UIOptionButton(&state.ui, &selected, UIIDGen(), "DFS",
+                                   gs_v2(970.f, 475.f), gs_v2(750.f, 400.f),
+                                   gs_color(255, 204, 18, 255));
+
+        if (UICustomButton(&state.ui, UIIDGen(), "Submit", gs_v2(970.f, 575.f),
+                           gs_v2(750.f, 500.f), gs_color(18, 219, 255, 255)))
+        {
+        }
+
+        if (UICustomButton(&state.ui, UIIDGen(), "Clear", gs_v2(970.f, 600.f),
+                           gs_v2(750.f, 675.f), gs_color(0, 255, 0, 255)))
+        {
+        }
     }
 
     UIEndFrame(&state.ui);
@@ -103,7 +125,7 @@ internal void UpdateApp()
         }
     }
 
-    gsi_text(&state.renderer, 730.f, 200.f, "Pathfinder",
+    gsi_text(&state.renderer, 730.f, 10.f, "Pathfinder",
              NULL, false, 255, 255, 255, 255);
 
     gs_graphics_submit_command_buffer(&state.command_buffer);

@@ -12,8 +12,8 @@
 typedef enum widget_type
 {
     UI_WIDGET_button,
-    UI_WIDGET_option_button,
-    UI_WIDGET_option_submit
+    UI_WIDGET_custom_button,
+    UI_WIDGET_option_button
 } widget_type;
 
 typedef struct ui_id
@@ -38,6 +38,11 @@ typedef struct ui_widget
             b32 is_active;
             gs_color_t color;
         } option;
+
+        struct custom
+        {
+            gs_color_t color;
+        } custom;
     };
 } ui_widget;
 
