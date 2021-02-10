@@ -13,16 +13,28 @@
 
 global app_state state = {0};
 
+internal void ResetMap(app_state *state)
+{
+    for (int j = 0; j < MAP_H; ++j)
+    {
+        for (int i = 0; i < MAP_W; ++i)
+        {
+            state->map[j][i] = CELL_TYPE_open;
+        }
+    }
+
+    state->start.j = 0;
+    state->start.i = 0;
+    state->end.j = 17;
+    state->end.i = 17;
+}
+    
+
 internal void InitApp()
 {
     state.command_buffer = gs_command_buffer_new();
     state.renderer = gs_immediate_draw_new();
-}
-
-internal b32 CellIsValid(int mouse_x, int mouse_y)
-{
-    return (mouse_x >= 0 && mouse_x <= MAP_W &&
-            mouse_y >= 0 && mouse_y <= MAP_H);
+    ResetMap(&state);
 }
 
 internal void UpdateApp()
@@ -39,17 +51,30 @@ internal void UpdateApp()
         ui_input.right_mouse_down = gs_platform_mouse_down(GS_MOUSE_RBUTTON);
     }
             
-    
-    // TODO: Handle Input
-    if (mouse_x >= 0 && mouse_x <= 720 &&
-        mouse_y >= 0 && mouse_y <= 720)
+    if (mouse_x >= 0 && mouse_x < 720 &&
+        mouse_y >= 0 && mouse_y < 720)
     {
         if (gs_platform_mouse_down(GS_MOUSE_LBUTTON))
         {
             int i = mouse_x / CELL_W; 
             int j = mouse_y / CELL_H;
 
-            state.map[j][i] = CELL_TYPE_obstacle;
+            if (gs_platform_key_down(GS_KEYCODE_LSHIFT))
+            { 
+                if (state.map[j][i] == CELL_TYPE_open)
+                {
+                    state.start.i = i;
+                    state.start.j = j;
+                }
+            }
+            else
+            {
+                if ((state.start.i != i && state.start.j != j) ||
+                    (state.end.i != i && state.end.j != j))
+                {
+                    state.map[j][i] = CELL_TYPE_obstacle;
+                }
+            }
         }
 
         else if (gs_platform_mouse_down(GS_MOUSE_RBUTTON))
@@ -57,7 +82,21 @@ internal void UpdateApp()
             int i = mouse_x / CELL_W; 
             int j = mouse_y / CELL_H;
 
-            state.map[j][i] = CELL_TYPE_open;
+            if (gs_platform_key_down(GS_KEYCODE_LSHIFT))
+            { 
+                if (state.map[j][i] == CELL_TYPE_open)
+                {
+                    state.end.i = i;
+                    state.end.j = j;
+                }
+            }
+            else
+            {
+                if (state.map[j][i] == CELL_TYPE_obstacle)
+                {
+                    state.map[j][i] = CELL_TYPE_open;
+                }
+            }
         }
     }
 
@@ -65,6 +104,44 @@ internal void UpdateApp()
                            gs_color(75, 75, 75, 255));
 
     gsi_camera2D(&state.renderer);
+
+    // Renderer the map
+    for (int j = 0; j < (MAP_H + 1); ++j)
+    {
+        for (int i = 0; i < (MAP_W + 1); ++i)
+        {
+            if (i < MAP_W && j < MAP_H)
+            {
+                if (state.map[j][i] == CELL_TYPE_obstacle)
+                {
+                    gsi_rectv(&state.renderer,
+                            gs_v2(i * CELL_W + CELL_W, j * CELL_H + CELL_H),
+                            gs_v2(i * CELL_W, j * CELL_H),
+                            GS_COLOR_WHITE, GS_GRAPHICS_PRIMITIVE_TRIANGLES);
+                }
+            }
+
+            gsi_line(&state.renderer,
+                     i * CELL_W, 0, i * CELL_W, 720,
+                     255, 255, 255, 255);
+
+            gsi_line(&state.renderer,
+                     0, j * CELL_H, 720, j * CELL_H,
+                     255, 255, 255, 255);
+        }
+    }
+
+    gsi_rectv(&state.renderer,
+              gs_v2(state.start.i * CELL_W + CELL_W,
+                    state.start.j * CELL_H + CELL_H),
+              gs_v2(state.start.i * CELL_W, state.start.j * CELL_H),
+              GS_COLOR_GREEN, GS_GRAPHICS_PRIMITIVE_TRIANGLES); 
+
+    gsi_rectv(&state.renderer,
+              gs_v2(state.end.i * CELL_W + CELL_W,
+                    state.end.j * CELL_H + CELL_H),
+              gs_v2(state.end.i * CELL_W, state.end.j * CELL_H),
+              GS_COLOR_BLUE, GS_GRAPHICS_PRIMITIVE_TRIANGLES); 
 
     UIBeginFrame(&state.ui, &state.renderer, &ui_input);
     {
@@ -96,34 +173,8 @@ internal void UpdateApp()
         {
         }
     }
-
     UIEndFrame(&state.ui);
 
-    // Renderer the map
-    for (int j = 0; j < (MAP_H + 1); ++j)
-    {
-        for (int i = 0; i < (MAP_W + 1); ++i)
-        {
-            if (i < MAP_W && j < MAP_H)
-            {
-                if (state.map[j][i] == CELL_TYPE_obstacle)
-                {
-                    gsi_rectv(&state.renderer,
-                            gs_v2(i * CELL_W + CELL_W, j * CELL_H + CELL_H),
-                            gs_v2(i * CELL_W, j * CELL_H),
-                            GS_COLOR_WHITE, GS_GRAPHICS_PRIMITIVE_TRIANGLES);
-                }
-            }
-
-            gsi_line(&state.renderer,
-                     i * CELL_W, 0, i * CELL_W, 720,
-                     255, 255, 255, 255);
-
-            gsi_line(&state.renderer,
-                     0, j * CELL_H, 720, j * CELL_H,
-                     255, 255, 255, 255);
-        }
-    }
 
     gsi_text(&state.renderer, 730.f, 10.f, "Pathfinder",
              NULL, false, 255, 255, 255, 255);

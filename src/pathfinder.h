@@ -45,6 +45,13 @@ typedef struct input
     b32 right_mouse_down;
 } input;
 
+typedef struct cell
+{
+    int j;
+    int i;
+    cell_type type;
+} cell;
+
 typedef struct app_state
 {
     gs_command_buffer_t command_buffer;
@@ -53,6 +60,8 @@ typedef struct app_state
     ui ui;
 
     cell_type map[MAP_H][MAP_W];
+    cell start;
+    cell end;
 } app_state; 
 
 #endif
