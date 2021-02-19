@@ -23,6 +23,11 @@ typedef i32 b32;
 #define global static
 #define local_persist static
 
+#define ArraySize(arr) (sizeof(arr) / sizeof((arr)[0]))
+#define Min(a, b) ((a) < (b) ? (a) : (b))
+#define Max(a, b) ((a) > (b) ? (a) : (b))
+#define AbsoluteValue(a) ((a) > 0 ? (a) : -(a))
+
 #define MAP_W (720 / 40)
 #define MAP_H (720 / 40)
 #define MAX   (GRID_W * GRID_H)
@@ -50,6 +55,9 @@ typedef struct cell
     int j;
     int i;
     cell_type type;
+
+    struct cell *parent;
+    struct cell neighbors[8];
 } cell;
 
 typedef struct app_state

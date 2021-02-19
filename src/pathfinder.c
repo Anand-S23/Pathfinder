@@ -9,6 +9,7 @@
 #include <math.h>
 
 #include "pathfinder.h"
+#include "data_structures.c"
 #include "ui.c"
 
 global app_state state = {0};
@@ -61,6 +62,7 @@ internal void UpdateApp()
 
             if (gs_platform_key_down(GS_KEYCODE_LSHIFT))
             { 
+                // Move the start if cell is open
                 if (state.map[j][i] == CELL_TYPE_open)
                 {
                     state.start.i = i;
@@ -69,6 +71,7 @@ internal void UpdateApp()
             }
             else
             {
+                // Add obstacle
                 if ((state.start.i != i && state.start.j != j) ||
                     (state.end.i != i && state.end.j != j))
                 {
@@ -84,6 +87,7 @@ internal void UpdateApp()
 
             if (gs_platform_key_down(GS_KEYCODE_LSHIFT))
             { 
+                // Move the end if cell is to open
                 if (state.map[j][i] == CELL_TYPE_open)
                 {
                     state.end.i = i;
@@ -92,6 +96,7 @@ internal void UpdateApp()
             }
             else
             {
+                // Remove obstacle
                 if (state.map[j][i] == CELL_TYPE_obstacle)
                 {
                     state.map[j][i] = CELL_TYPE_open;
@@ -112,6 +117,7 @@ internal void UpdateApp()
         {
             if (i < MAP_W && j < MAP_H)
             {
+                // Renderer obstacles
                 if (state.map[j][i] == CELL_TYPE_obstacle)
                 {
                     gsi_rectv(&state.renderer,
@@ -121,28 +127,35 @@ internal void UpdateApp()
                 }
             }
 
+            // Verticle Lines
             gsi_line(&state.renderer,
                      i * CELL_W, 0, i * CELL_W, 720,
                      255, 255, 255, 255);
 
+            // Horizontal Lines
             gsi_line(&state.renderer,
                      0, j * CELL_H, 720, j * CELL_H,
                      255, 255, 255, 255);
         }
     }
 
+    // Renderer the start cell
     gsi_rectv(&state.renderer,
               gs_v2(state.start.i * CELL_W + CELL_W,
                     state.start.j * CELL_H + CELL_H),
-              gs_v2(state.start.i * CELL_W, state.start.j * CELL_H),
+              gs_v2(Max(0, state.start.i * CELL_W - 1),
+                    Max(0, state.start.j * CELL_H - 1)),
               GS_COLOR_GREEN, GS_GRAPHICS_PRIMITIVE_TRIANGLES); 
 
+    // Renderer the end cell
     gsi_rectv(&state.renderer,
               gs_v2(state.end.i * CELL_W + CELL_W,
                     state.end.j * CELL_H + CELL_H),
-              gs_v2(state.end.i * CELL_W, state.end.j * CELL_H),
+              gs_v2(Max(0, state.end.i * CELL_W - 1),
+                    Max(0, state.end.j * CELL_H - 1)),
               GS_COLOR_BLUE, GS_GRAPHICS_PRIMITIVE_TRIANGLES); 
 
+    // UI
     UIBeginFrame(&state.ui, &state.renderer, &ui_input);
     {
         local_persist ui_id selected = {0};
@@ -175,9 +188,8 @@ internal void UpdateApp()
     }
     UIEndFrame(&state.ui);
 
-
     gsi_text(&state.renderer, 730.f, 10.f, "Pathfinder",
-             NULL, false, 255, 255, 255, 255);
+            NULL, false, 255, 255, 255, 255);
 
     gs_graphics_submit_command_buffer(&state.command_buffer);
 }
