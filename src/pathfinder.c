@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <math.h>
 
 #include "pathfinder.h"
@@ -36,6 +37,7 @@ internal void InitApp()
     state.command_buffer = gs_command_buffer_new();
     state.renderer = gs_immediate_draw_new();
     ResetMap(&state);
+    srand(time(0));
 }
 
 internal void UpdateApp()

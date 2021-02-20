@@ -39,7 +39,8 @@ typedef enum cell_type
 {
     CELL_TYPE_open,
     CELL_TYPE_visited,
-    CELL_TYPE_obstacle
+    CELL_TYPE_obstacle,
+    CELL_TYPE_path
 } cell_type;
 
 typedef struct input
@@ -71,6 +72,8 @@ typedef struct app_state
     cell_type map[MAP_H][MAP_W];
     cell start;
     cell end;
+
+    b32 pathfinding;
 } app_state; 
 
 #endif
