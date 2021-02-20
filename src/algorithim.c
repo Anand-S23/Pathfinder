@@ -14,19 +14,17 @@ internal void DFSPathfinding(app_state *state)
 {
     if (state->generating)
     {
-        local_persist b32 initialized = 0;
-        local_persist linked_list path_stack;
-        local_persist cell *current;
+        local_persist dfs dfs = {0};
 
-        if (!initalized)
+        if (!dfs.initalized)
         {
-            path_stack = CreateList();
-            current = state->start;
-            initialized = 1;
+            dfs.path_stack = CreateList();
+            dfs.current = state->start;
+            dfs.initialized = 1;
         }
 
-        Push(&path_stack, current);
-        current->type = CELL_TYPE_visited;
+        Push(&dfs.path_stack, dfs.current);
+        dfs.current->type = CELL_TYPE_visited;
 
         int size = 0;
 

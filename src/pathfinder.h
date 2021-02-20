@@ -57,6 +57,7 @@ typedef struct cell
     cell_type type;
 
     struct cell *parent;
+    int neighbor_count;
     struct cell neighbors[8];
 } cell;
 
