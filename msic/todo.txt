@@ -1,0 +1,6 @@
+TODO: 
+
+text to show up on buttons
+malloc for neighbors
+finish up dfs
+fix the placing start on end

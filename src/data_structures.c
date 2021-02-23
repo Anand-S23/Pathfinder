@@ -16,7 +16,7 @@ internal linked_list CreateList()
 {
     linked_list list;
     list.head = NULL;
-    return ret_list; 
+    return list; 
 } 
 
 // Pushes node on the beginning of the list

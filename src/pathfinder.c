@@ -36,6 +36,7 @@ internal void InitApp()
 {
     state.command_buffer = gs_command_buffer_new();
     state.renderer = gs_immediate_draw_new();
+    gs_asset_font_load_from_file("./assets/UM_Bold.ttf", &state.font, 48);
     ResetMap(&state);
     srand(time(0));
 }
@@ -117,6 +118,7 @@ internal void UpdateApp()
     {
         for (int i = 0; i < (MAP_W + 1); ++i)
         {
+            // TODO: Render the visited and the path cells
             if (i < MAP_W && j < MAP_H)
             {
                 // Renderer obstacles
@@ -160,26 +162,29 @@ internal void UpdateApp()
     // UI
     UIBeginFrame(&state.ui, &state.renderer, &ui_input);
     {
-        local_persist ui_id selected = {0};
+        local_persist ui_option algorithm_option = {0};
 
-        ui_id bfs = UIOptionButton(&state.ui, &selected, UIIDGen(), "BFS",
-                                   gs_v2(970.f, 175.f), gs_v2(750.f, 100.f),
-                                   gs_color(255, 204, 18, 255));
+        if (!algorithm_option.initalized)
+        {
+            algorithm_option =
+                UIOption(gs_color(255, 204, 18, 255), gs_v2(40, 40));
+            algorithm_option.initalized = 1;
+        }
 
-        ui_id dfs = UIOptionButton(&state.ui, &selected, UIIDGen(), "DFS",
-                                   gs_v2(970.f, 275.f), gs_v2(750.f, 200.f),
-                                   gs_color(255, 204, 18, 255));
+        ui_id dfs = UIOptionButton(&state.ui, &algorithm_option, UIIDGen(),
+                                   "DFS", gs_v2(740.f, 75.f));
 
-        ui_id dj = UIOptionButton(&state.ui, &selected, UIIDGen(), "DFS",
-                                   gs_v2(970.f, 375.f), gs_v2(750.f, 300.f),
-                                   gs_color(255, 204, 18, 255));
+        ui_id bfs = UIOptionButton(&state.ui, &algorithm_option, UIIDGen(),
+                                   "BFS", gs_v2(740.f, 150.f));
 
-        ui_id a_star = UIOptionButton(&state.ui, &selected, UIIDGen(), "DFS",
-                                   gs_v2(970.f, 475.f), gs_v2(750.f, 400.f),
-                                   gs_color(255, 204, 18, 255));
+        ui_id dj = UIOptionButton(&state.ui, &algorithm_option, UIIDGen(),
+                                  "Dj", gs_v2(740.f, 225.f));
 
-        if (UICustomButton(&state.ui, UIIDGen(), "Submit", gs_v2(970.f, 575.f),
-                           gs_v2(750.f, 500.f), gs_color(18, 219, 255, 255)))
+        ui_id a_star = UIOptionButton(&state.ui, &algorithm_option, UIIDGen(),
+                                      "A Star", gs_v2(740.f, 300.f));
+
+        if (UIButton(&state.ui, UIIDGen(), "Submit", gs_v2(980.f, 440.f),
+                     gs_v2(740.f, 375.f)))
         {
         }
 
@@ -190,8 +195,8 @@ internal void UpdateApp()
     }
     UIEndFrame(&state.ui);
 
-    gsi_text(&state.renderer, 730.f, 10.f, "Pathfinder",
-            NULL, false, 255, 255, 255, 255);
+    gsi_text(&state.renderer, 740.f, 40.f, "Pathfinder",
+            &state.font, false, 255, 255, 255, 255);
 
     gs_graphics_submit_command_buffer(&state.command_buffer);
 }

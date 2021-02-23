@@ -41,18 +41,22 @@ internal void UIEndFrame(ui *ui)
         
         switch(widget->type)
         {
-            // TODO: Fix the colors of the UI (when hot and active)
+            // TODO: Add text for the buttons
             case UI_WIDGET_button:
             {
                 gs_color_t color;
 
-                if (widget->t_hot)
+                if (widget->t_hot && widget->t_active)
+                {
+                    color = gs_color(60, 60, 60, 255);
+                }
+                else if (widget->t_hot)
                 {
                     color = gs_color(150, 150, 150, 255);
                 }
                 else if (widget->t_active)
                 {
-                    color = gs_color(50, 50, 50, 255);
+                    color = gs_color(45, 45, 45, 255);
                 }
                 else
                 {
@@ -77,7 +81,7 @@ internal void UIEndFrame(ui *ui)
                 }
                 else
                 {
-                    color = widget->custom.color;
+                    color = widget->color;
                 }
                 
                 gsi_rectv(ui->renderer, widget->rect_br, widget->rect_tl,
@@ -90,7 +94,7 @@ internal void UIEndFrame(ui *ui)
 
                 if (widget->option.is_active)
                 {
-                    color = widget->option.color;
+                    color = widget->color;
                 }
                 else
                 {
@@ -212,23 +216,31 @@ internal b32 UICustomButton(ui *ui, ui_id id, char *text, gs_vec2 rect_br,
     widget->id = id;
     widget->rect_br = rect_br;
     widget->rect_tl = rect_tl;
-    widget->custom.color = color;
+    widget->color = color;
 
     return is_triggered;
 }
 
-internal ui_id UIOptionButton(ui *ui, ui_id *current_selected, ui_id id, char *text,
-                              gs_vec2 rect_br, gs_vec2 rect_tl,
-                              gs_color_t color)
+internal ui_option UIOption(gs_color_t color, gs_vec2 size)
+{
+    ui_option option = {0};
+    option.color = color;
+    option.size = size;
+
+    return option;
+}
+
+internal ui_id UIOptionButton(ui *ui, ui_option *parent, ui_id id,
+                              char *text, gs_vec2 origin)
 {
     // Assert(ui->widget_count < UI_MAX_WIDGETS);
     
     b32 is_triggered = 0;
     
-    b32 cursor_is_over = (ui->mouse_x >= rect_tl.x &&
-                          ui->mouse_x <= rect_br.x &&
-                          ui->mouse_y >= rect_tl.y &&
-                          ui->mouse_y <= rect_br.y);
+    b32 cursor_is_over = (ui->mouse_x >= origin.x &&
+                          ui->mouse_x <= origin.x + parent->size.x &&
+                          ui->mouse_y >= origin.y &&
+                          ui->mouse_y <= origin.y + parent->size.y);
     
     if (!UIIDEqual(ui->hot, id) && cursor_is_over)
     {
@@ -247,7 +259,7 @@ internal ui_id UIOptionButton(ui *ui, ui_id *current_selected, ui_id id, char *t
 
             if (is_triggered)
             {
-                *current_selected = id;
+                parent->selected = id;
             }
 
             ui->active = UIIDNull();
@@ -267,10 +279,11 @@ internal ui_id UIOptionButton(ui *ui, ui_id *current_selected, ui_id id, char *t
     ui_widget *widget = ui->widgets + ui->widget_count++;
     widget->type = UI_WIDGET_option_button;
     widget->id = id;
-    widget->rect_br = rect_br;
-    widget->rect_tl = rect_tl;
-    widget->option.is_active = UIIDEqual(id, *current_selected);
-    widget->option.color = color;
+    widget->rect_br = gs_v2(origin.x + parent->size.x,
+                            origin.y + parent->size.y);
+    widget->rect_tl = origin;
+    widget->option.is_active = UIIDEqual(id, parent->selected);
+    widget->color = parent->color;
 
     return id;
 }
