@@ -35,11 +35,18 @@ typedef i32 b32;
 #define CELL_W (720 / MAP_W)
 #define CELL_H (720 / MAP_H)
 
+typedef enum direction
+{
+    NORTH,
+    SOUTH,
+    EAST,
+    WEST
+} direction;
+
 typedef enum cell_type
 {
     CELL_TYPE_open,
     CELL_TYPE_visited,
-    CELL_TYPE_obstacle,
     CELL_TYPE_path
 } cell_type;
 
@@ -55,23 +62,30 @@ typedef struct cell
 {
     int j;
     int i;
-    cell_type type;
 
     int neighbor_count;
     struct cell *parent;
     struct cell *neighbors;
 } cell;
 
+typedef struct map_node
+{
+    cell_type type;
+    b32 walls[4];
+} map_node;
+    
+
 typedef struct app_state
 {
     gs_command_buffer_t command_buffer;
     gs_immediate_draw_t renderer;
 
+    gs_asset_font_t header_font;
     gs_asset_font_t font;
 
     ui ui;
 
-    cell_type map[MAP_H][MAP_W];
+    map_node map[MAP_H][MAP_W];
     cell start;
     cell end;
 

@@ -45,6 +45,7 @@ typedef struct ui_widget
 typedef struct ui
 {
     gs_immediate_draw_t *renderer;
+    gs_asset_font_t *font;
 
     f32 mouse_x;
     f32 mouse_y;
@@ -53,7 +54,6 @@ typedef struct ui
 
     u32 widget_count;
     ui_widget widgets[UI_MAX_WIDGETS];
-    
     ui_id hot;
     ui_id active;
 } ui;
@@ -65,6 +65,5 @@ typedef struct ui_option
     gs_vec2 size;
     b32 initalized;
 } ui_option;
-    
 
 #endif

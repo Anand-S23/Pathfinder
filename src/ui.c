@@ -18,7 +18,8 @@ internal b32 UIIDEqual(ui_id id1, ui_id id2)
             id1.secondary == id2.secondary);
 }
 
-internal void UIBeginFrame(ui *ui, gs_immediate_draw_t *renderer, input *input)
+internal void UIBeginFrame(ui *ui, gs_immediate_draw_t *renderer,
+                           input *input, gs_asset_font_t *font)
 {
     ui->renderer = renderer;
 
@@ -27,6 +28,7 @@ internal void UIBeginFrame(ui *ui, gs_immediate_draw_t *renderer, input *input)
     ui->left_mouse_down  = input->left_mouse_down;
     ui->right_mouse_down = input->right_mouse_down;
 
+    ui->font = font;
     ui->widget_count = 0;
 }
 
@@ -71,13 +73,29 @@ internal void UIEndFrame(ui *ui)
             {
                 gs_color_t color;
 
-                if (widget->t_hot)
+                if (widget->t_hot && widget->t_active)
                 {
-                    color = gs_color(150, 150, 150, 255);
+                    u8 r = Max(0, widget->color.r - 40);
+                    u8 g = Max(0, widget->color.g - 40);
+                    u8 b = Max(0, widget->color.b - 40);
+
+                    color = gs_color(r, g, b, 255);
+                }
+                else if (widget->t_hot)
+                {
+                    u8 r = Min(255, widget->color.r + 50);
+                    u8 g = Min(255, widget->color.g + 50);
+                    u8 b = Min(255, widget->color.b + 50);
+
+                    color = gs_color(r, g, b, 255);
                 }
                 else if (widget->t_active)
                 {
-                    color = gs_color(100, 100, 100, 255);
+                    u8 r = Max(0, widget->color.r - 55);
+                    u8 g = Max(0, widget->color.g - 55);
+                    u8 b = Max(0, widget->color.b - 55);
+
+                    color = gs_color(r, g, b, 255);
                 }
                 else
                 {
@@ -168,6 +186,7 @@ internal b32 UIButton(ui *ui, ui_id id, char *text,
     widget->id = id;
     widget->rect_br = rect_br;
     widget->rect_tl = rect_tl;
+    widget->text = text;
 
     return is_triggered;
 }
@@ -210,13 +229,14 @@ internal b32 UICustomButton(ui *ui, ui_id id, char *text, gs_vec2 rect_br,
             }
         }
     }
-    
+
     ui_widget *widget = ui->widgets + ui->widget_count++;
     widget->type = UI_WIDGET_custom_button;
     widget->id = id;
     widget->rect_br = rect_br;
     widget->rect_tl = rect_tl;
     widget->color = color;
+    widget->text = text;
 
     return is_triggered;
 }
@@ -284,6 +304,7 @@ internal ui_id UIOptionButton(ui *ui, ui_option *parent, ui_id id,
     widget->rect_tl = origin;
     widget->option.is_active = UIIDEqual(id, parent->selected);
     widget->color = parent->color;
+    widget->text = text;
 
     return id;
 }

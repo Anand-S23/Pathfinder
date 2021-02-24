@@ -24,6 +24,7 @@ internal void AddValidNeighbor(cell *current, int i, int j)
             neighbor_cell.j = j;
             neighbor_cell.i = i;
             neighbor_cell.parent = current;
+            neighbor_cell.neighors = malloc(sizeof(cell) * 4);
             neighbor_count = 0;
         }
 
