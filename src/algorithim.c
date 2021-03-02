@@ -1,11 +1,35 @@
 /* Common - Utilities functions */
 
-// Checks if cell taversable (open and in map)
-internal b32 CellValid(cell_type type, int x, int y)
+// Checks if the cell is valid
+internal b32 CellValid(app_state *state, cell *current, direction direction)
 {
-    return (type == CELL_TYPE_open &&
-            (x >= 0 && x < MAP_W) &&
-            (y >= 0 && y < MAP_H));
+    if (state->map[current->j][current->i].walls[direction])
+    {
+        return 0;
+    }
+
+    if (direction == NORTH &&
+        state->map[current->j - 1][current->i].type == CELL_TYPE_visited)
+    {
+        return 0;
+    }
+    else if (direction == SOUTH &&
+             state->map[current->j + 1][current->i].type == CELL_TYPE_visited)
+    {
+        return 0;
+    }
+    else if (direction == EAST &&
+             state->map[current->j][current->i + 1].type == CELL_TYPE_visited)
+    {
+        return 0;
+    }
+    else if (direction == WEST &&
+             state->map[current->j][current->i - 1].type == CELL_TYPE_visited)
+    {
+        return 0;
+    }
+        
+    return 1;
 }
 
 // Checks if the two cells passed are the same
@@ -15,16 +39,16 @@ internal b32 CellEqual(cell c1, cell c2)
 }
 
 // Add a cell to neighbor list of current if vaild
-internal void AddValidNeighbor(cell *current, int i, int j)
+internal void AddValidNeighbor(app_state *state, cell *current, direction wall)
 {
-    if (CellValid(current->type, i, j))
+    if (CellValid(state, current, direction)
     {
         cell neighbor_cell = {0};
         {
             neighbor_cell.j = j;
             neighbor_cell.i = i;
             neighbor_cell.parent = current;
-            neighbor_cell.neighors = malloc(sizeof(cell) * 4);
+            neighbor_cell.neighors = (cell *)malloc(sizeof(cell) * 4);
             neighbor_count = 0;
         }
 
@@ -80,14 +104,10 @@ internal void DFSPathfinding(app_state *state)
     Push(&dfs.path_stack, dfs.current);
     dfs.current->type = CELL_TYPE_visited;
 
-    AddValidNeighbor(dfs.current, dfs.current->i, dfs.current->j - 1);     // North
-    AddValidNeighbor(dfs.current, dfs.current->i + 1, dfs.current->j - 1); // North East
-    AddValidNeighbor(dfs.current, dfs.current->i + 1, dfs.current->j);     // East
-    AddValidNeighbor(dfs.current, dfs.current->i + 1, dfs.current->j + 1); // South East
-    AddValidNeighbor(dfs.current, dfs.current->i, dfs.current->j + 1);     // South
-    AddValidNeighbor(dfs.current, dfs.current->i - 1, dfs.current->j + 1); // South West
-    AddValidNeighbor(dfs.current, dfs.current->i - 1, dfs.current->j);     // West
-    AddValidNeighbor(dfs.current, dfs.current->i - 1, dfs.current->j - 1); // North West
+    AddValidNeighbor(state, dfs.current, NORTH);
+    AddValidNeighbor(state, dfs.current, SOUTH);
+    AddValidNeighbor(state, dfs.current, EAST);
+    AddValidNeighbor(state, dfs.current, WEST);
 
     // No Valid neighbors left
     if (dfs.current->neighbor_count == 0)

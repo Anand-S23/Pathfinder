@@ -23,31 +23,36 @@ internal void ResetMap(app_state *state)
         {
             state->map[j][i].type = CELL_TYPE_open;
 
-            for (int k = 0; k < 4; ++k)
+            b32 north = 0;
+            b32 south = 0;
+            b32 east = 0;
+            b32 west = 0;
+
+            if (j == 0)
             {
-                state->map[j][i].walls[k] = 0;
+                north = 1;
             }
+            else if (j == MAP_H - 1)
+            {
+                south = 1;
+            }
+
+            
+            if (i == 0)
+            {
+                west = 1;
+            }
+            else if (i == MAP_W - 1)
+            {
+                east = 1;
+            }
+
+
+            state->map[j][i].walls[NORTH] = north;
+            state->map[j][i].walls[SOUTH] = south;
+            state->map[j][i].walls[EAST] = east;
+            state->map[j][i].walls[WEST] = west;
         }
-    }
-
-    for (int i = 0; i < MAP_W; ++i)
-    {
-        state->map[0][i].walls[NORTH] = 1;
-    }
-
-    for (int i = 0; i < MAP_W; ++i)
-    {
-        state->map[MAP_W - 1][i].walls[SOUTH] = 1;
-    }
-
-    for (int j = 0; j < MAP_H; ++j)
-    {
-        state->map[j][0].walls[WEST] = 1;
-    }
-
-    for (int j = 0; j < MAP_H; ++j)
-    {
-        state->map[j][MAP_H - 1].walls[WEST] = 1;
     }
 
     state->start.j = 0;
@@ -77,11 +82,64 @@ internal void HandleEvent(app_state *state, int mouse_x, int mouse_y)
         mouse_y > 0 && mouse_y < 720 &&
         !state->pathfinding)
     {
+        int i = mouse_x / CELL_W; 
+        int j = mouse_y / CELL_H;
+
+        direction ns, ew, dir_final;
+        int ns_val, ew_val;
+
+        if (mouse_x - i * CELL_W > (i + 1) * CELL_W - mouse_x)
+        {
+            ew = EAST;
+            ew_val = mouse_x - i * CELL_W;
+        }
+        else
+        {
+            ew = WEST;
+            ew_val = (i + 1) * CELL_W - mouse_x;
+        }
+            
+        if (mouse_y - j * CELL_H > (j + 1) * CELL_H - mouse_y)
+        {
+            ns = SOUTH;
+            ns_val = mouse_y - j * CELL_H;
+        }
+        else
+        {
+            ns = NORTH;
+            ns_val = (j + 1) * CELL_H - mouse_y;
+        }
+
+        dir_final = (ew_val > ns_val) ? ew : ns;
+
+        if (dir_final == NORTH && j != 0)
+        {
+            state->hover.i = i;
+            state->hover.j = j;
+            state->hover.wall = NORTH;
+        }
+        else if (dir_final == SOUTH && j != MAP_H - 1)
+        {
+            state->hover.i = i;
+            state->hover.j = j;
+            state->hover.wall = SOUTH;
+        }
+        else if (dir_final == WEST && i != 0)
+        {
+            state->hover.i = i;
+            state->hover.j = j;
+            state->hover.wall = WEST;
+        }
+        else if (dir_final == EAST && i != MAP_W - 1)
+        {
+            state->hover.i = i;
+            state->hover.j = j;
+            state->hover.wall = EAST;
+        }
+            
+
         if (gs_platform_mouse_down(GS_MOUSE_LBUTTON))
         {
-            int i = mouse_x / CELL_W; 
-            int j = mouse_y / CELL_H;
-
             if (gs_platform_key_down(GS_KEYCODE_LSHIFT))
             { 
                 // Place start if cell is not end
@@ -94,24 +152,37 @@ internal void HandleEvent(app_state *state, int mouse_x, int mouse_y)
             else
             {
                 // Place wall
-                if (mouse_x % 40 == 0)
+                if (state->hover.i != -1 && state->hover.j != -1)
                 {
-                    state->map[j][i - 1].walls[EAST] = 1; 
-                    state->map[j][i].walls[WEST] = 1; 
-                }
-                else if (mouse_y % 40 == 0)
-                {
-                    state->map[j - 1][i].walls[SOUTH] = 1;
-                    state->map[j][i].walls[NORTH] = 1;
+                    if (state->hover.wall == NORTH)
+                    {
+                        state->map[state->hover.j - 1][state->hover.i].walls[SOUTH] = 1; 
+                        state->map[state->hover.j][state->hover.i].walls[NORTH] = 1; 
+                    }
+
+                    else if (state->hover.wall == SOUTH)
+                    {
+                        state->map[state->hover.j + 1][state->hover.i].walls[NORTH] = 1; 
+                        state->map[state->hover.j][state->hover.i].walls[SOUTH] = 1; 
+                    }
+
+                    else if (state->hover.wall == EAST)
+                    {
+                        state->map[state->hover.j][state->hover.i + 1].walls[WEST] = 1; 
+                        state->map[state->hover.j][state->hover.i].walls[EAST] = 1; 
+                    }
+
+                    else if (state->hover.wall == WEST)
+                    {
+                        state->map[state->hover.j][state->hover.i - 1].walls[EAST] = 1; 
+                        state->map[state->hover.j][state->hover.i].walls[WEST] = 1; 
+                    }
                 }
             }
         }
 
         else if (gs_platform_mouse_down(GS_MOUSE_RBUTTON))
         {
-            int i = mouse_x / CELL_W; 
-            int j = mouse_y / CELL_H;
-
             if (gs_platform_key_down(GS_KEYCODE_LSHIFT))
             { 
                 // Place end if cell is not start
@@ -124,51 +195,93 @@ internal void HandleEvent(app_state *state, int mouse_x, int mouse_y)
             else
             {
                 // Remove wall 
-                if (mouse_x % CELL_W == 0)
+                if (state->hover.i != -1 && state->hover.j != -1)
                 {
-                    state->map[j][i - 1].walls[EAST] = 0;
-                    state->map[j][i].walls[WEST] = 0; 
-                }
-                else if (mouse_y % CELL_H == 0)
-                {
-                    state->map[j - 1][i].walls[SOUTH] = 0;
-                    state->map[j][i].walls[NORTH] = 0;
+                    if (state->hover.wall == NORTH)
+                    {
+                        state->map[state->hover.j - 1][state->hover.i].walls[SOUTH] = 0; 
+                        state->map[state->hover.j][state->hover.i].walls[NORTH] = 0; 
+                    }
+
+                    else if (state->hover.wall == SOUTH)
+                    {
+                        state->map[state->hover.j + 1][state->hover.i].walls[NORTH] = 0; 
+                        state->map[state->hover.j][state->hover.i].walls[SOUTH] = 0; 
+                    }
+
+                    else if (state->hover.wall == EAST)
+                    {
+                        state->map[state->hover.j][state->hover.i + 1].walls[WEST] = 0; 
+                        state->map[state->hover.j][state->hover.i].walls[EAST] = 0; 
+                    }
+
+                    else if (state->hover.wall == WEST)
+                    {
+                        state->map[state->hover.j][state->hover.i - 1].walls[EAST] = 0; 
+                        state->map[state->hover.j][state->hover.i].walls[WEST] = 0; 
+                    }
                 }
             }
         }
+    }
+    else
+    {
+        state->hover.i = -1;
+        state->hover.j = -1;
     }
 }
 
 internal void RenderMap(app_state *state)
 {
+    // Renderer the start cell
+    gsi_rectv(&state->renderer,
+              gs_v2(state->start.i * CELL_W + CELL_W,
+                    state->start.j * CELL_H + CELL_H),
+              gs_v2(state->start.i * CELL_W,
+                    state->start.j * CELL_H),
+              GS_COLOR_GREEN, GS_GRAPHICS_PRIMITIVE_TRIANGLES); 
+
+    // Renderer the end cell
+    gsi_rectv(&state->renderer,
+              gs_v2(state->end.i * CELL_W + CELL_W,
+                    state->end.j * CELL_H + CELL_H),
+              gs_v2(state->end.i * CELL_W,
+                    state->end.j * CELL_H),
+              GS_COLOR_BLUE, GS_GRAPHICS_PRIMITIVE_TRIANGLES); 
+
+    // Render faded grid
     for (int j = 0; j < MAP_H; ++j)
     {
-        for (int i = 0; i < MAP_W; ++i)
-        {
-            // Render faded grid
             gsi_line(&state->renderer,
-                     i * CELL_W, 0, i * CELL_W, 720,
+                     j * CELL_W, 0, j * CELL_W, 720,
                      90, 90, 90, 255);
 
             gsi_line(&state->renderer,
                      0, j * CELL_H, 720, j * CELL_H,
                      90, 90, 90, 255);
+    }
 
+    // Map
+    for (int j = 0; j < MAP_H; ++j)
+    {
+
+        for (int i = 0; i < MAP_W; ++i)
+        {
             // Render walls
-            if (state->map[i][j].walls[SOUTH])
+            if (state->map[j][i].walls[SOUTH])
             {
                 gsi_line(&state->renderer,
-                         i * CELL_W, j * CELL_H,
-                         (i + 1) * CELL_W, j * CELL_H,
+                         i * CELL_W, (j + 1) * CELL_H,
+                         (i + 1) * CELL_W, (j + 1) * CELL_H,
                         255, 255, 255, 255);
             }
 
-            if (state->map[i][j].walls[EAST])
+            if (state->map[j][i].walls[EAST])
             {
                 gsi_line(&state->renderer,
-                         i * CELL_W, j * CELL_H,
-                         i * CELL_W, (j + 1) * CELL_H,
-                        255, 255, 255, 255);
+                         (i + 1) * CELL_W, j * CELL_H,
+                         (i + 1) * CELL_W, (j + 1) * CELL_H,
+                         255, 255, 255, 255);
             }
 
             // Render visited
@@ -189,21 +302,40 @@ internal void RenderMap(app_state *state)
         }
     }
 
-    // Renderer the start cell
-    gsi_rectv(&state->renderer,
-              gs_v2(state->start.i * CELL_W + CELL_W,
-                    state->start.j * CELL_H + CELL_H),
-              gs_v2(Max(0, state->start.i * CELL_W - 1),
-                    Max(0, state->start.j * CELL_H - 1)),
-              GS_COLOR_GREEN, GS_GRAPHICS_PRIMITIVE_TRIANGLES); 
+    if (state->hover.i != -1 && state->hover.j != -1)
+    {
+        if (state->hover.wall == NORTH)
+        {
+            gsi_line(&state->renderer,
+                     state->hover.i * CELL_W, state->hover.j * CELL_H,
+                     (state->hover.i + 1) * CELL_W, state->hover.j * CELL_H,
+                     255, 255, 0, 255);
+        }
 
-    // Renderer the end cell
-    gsi_rectv(&state->renderer,
-              gs_v2(state->end.i * CELL_W + CELL_W,
-                    state->end.j * CELL_H + CELL_H),
-              gs_v2(Max(0, state->end.i * CELL_W - 1),
-                    Max(0, state->end.j * CELL_H - 1)),
-              GS_COLOR_BLUE, GS_GRAPHICS_PRIMITIVE_TRIANGLES); 
+        else if (state->hover.wall == SOUTH)
+        {
+            gsi_line(&state->renderer,
+                     state->hover.i * CELL_W, (state->hover.j + 1) * CELL_H,
+                     (state->hover.i + 1) * CELL_W, (state->hover.j + 1) * CELL_H,
+                     255, 255, 0, 255);
+        }
+        
+        else if (state->hover.wall == EAST)
+        {
+            gsi_line(&state->renderer,
+                     (state->hover.i + 1) * CELL_W, state->hover.j * CELL_H,
+                     (state->hover.i + 1) * CELL_W, (state->hover.j + 1) * CELL_H,
+                     255, 255, 0, 255);
+        }
+
+        else if (state->hover.wall == WEST)
+        {
+            gsi_line(&state->renderer,
+                     state->hover.i * CELL_W, state->hover.j * CELL_H,
+                     state->hover.i * CELL_W, (state->hover.j + 1) * CELL_H,
+                     255, 255, 0, 255);
+        }
+    }
 }
 
 internal void InitApp()
@@ -242,7 +374,8 @@ internal void UpdateApp()
     RenderMap(&state);
 
     // UI
-    UIBeginFrame(&state.ui, &state.renderer, &ui_input, &state.font);
+    UIBeginFrame(&state.ui, &state.renderer, &state.command_buffer,
+                 &ui_input, &state.font);
     {
         local_persist ui_option algorithm_option = {0};
 

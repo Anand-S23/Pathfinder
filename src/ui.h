@@ -45,6 +45,7 @@ typedef struct ui_widget
 typedef struct ui
 {
     gs_immediate_draw_t *renderer;
+    gs_command_buffer_t *command_buffer;
     gs_asset_font_t *font;
 
     f32 mouse_x;

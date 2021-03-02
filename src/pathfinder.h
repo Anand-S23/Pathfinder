@@ -89,6 +89,13 @@ typedef struct app_state
     cell start;
     cell end;
 
+    struct
+    {
+        int i;
+        int j;
+        direction wall;
+    } hover;
+
     b32 pathfinding;
 } app_state; 
 

@@ -19,9 +19,11 @@ internal b32 UIIDEqual(ui_id id1, ui_id id2)
 }
 
 internal void UIBeginFrame(ui *ui, gs_immediate_draw_t *renderer,
+                           gs_command_buffer_t *command_buffer,
                            input *input, gs_asset_font_t *font)
 {
     ui->renderer = renderer;
+    ui->command_buffer = command_buffer;
 
     ui->mouse_x          = input->mouse_x;
     ui->mouse_y          = input->mouse_y;
@@ -67,6 +69,17 @@ internal void UIEndFrame(ui *ui)
                 
                 gsi_rectv(ui->renderer, widget->rect_br, widget->rect_tl,
                           color, GS_GRAPHICS_PRIMITIVE_TRIANGLES);
+
+                // TODO: Render text
+                /*
+                gs_graphics_set_view_scissor(ui->command_buffer,
+                                             widget->rect_tl.x, widget->rect_tl.y,
+                                             widget->rect_br.x - widget->rect_tl.x,
+                                             widget->rect_br.y - widget->rect_tl.y);
+
+                gsi_text(ui->renderer, widget->rect_tl.x, widget->rect_tl.y + 50, widget->text,
+                         ui->font, false, 255, 255, 255, 255);
+                */
             } break;
             
             case UI_WIDGET_custom_button:
@@ -102,8 +115,19 @@ internal void UIEndFrame(ui *ui)
                     color = widget->color;
                 }
                 
+                
                 gsi_rectv(ui->renderer, widget->rect_br, widget->rect_tl,
                           color, GS_GRAPHICS_PRIMITIVE_TRIANGLES);
+
+                /*
+                gs_graphics_set_view_scissor(ui->command_buffer,
+                                             widget->rect_tl.x, widget->rect_tl.y,
+                                             widget->rect_br.x - widget->rect_tl.x,
+                                             widget->rect_br.y - widget->rect_tl.y);
+
+                gsi_text(ui->renderer, widget->rect_tl.x, widget->rect_tl.y + 50, widget->text,
+                         ui->font, false, 255, 255, 255, 255);
+                */
             } break;
             
             case UI_WIDGET_option_button:
@@ -139,6 +163,9 @@ internal void UIEndFrame(ui *ui)
                 printf("Error widget of type %d does not exist\n", widget->type);
             } break;
         }
+
+        // TODO: Change hardcoded window size, and move out for loop
+        gs_graphics_set_view_scissor(ui->command_buffer, 0, 0, 1280, 720);
     }
 }
 
