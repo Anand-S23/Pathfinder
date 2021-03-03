@@ -8,9 +8,11 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include <windows.h>
 
 #include "pathfinder.h"
 #include "data_structures.c"
+#include "algorithm.c"
 #include "ui.c"
 
 global app_state state = {0};
@@ -267,24 +269,7 @@ internal void RenderMap(app_state *state)
 
         for (int i = 0; i < MAP_W; ++i)
         {
-            // Render walls
-            if (state->map[j][i].walls[SOUTH])
-            {
-                gsi_line(&state->renderer,
-                         i * CELL_W, (j + 1) * CELL_H,
-                         (i + 1) * CELL_W, (j + 1) * CELL_H,
-                        255, 255, 255, 255);
-            }
-
-            if (state->map[j][i].walls[EAST])
-            {
-                gsi_line(&state->renderer,
-                         (i + 1) * CELL_W, j * CELL_H,
-                         (i + 1) * CELL_W, (j + 1) * CELL_H,
-                         255, 255, 255, 255);
-            }
-
-            // Render visited
+            // Render visited && path
             if (state->map[j][i].type == CELL_TYPE_visited)
             {
                 gsi_rectv(&state->renderer,
@@ -295,9 +280,26 @@ internal void RenderMap(app_state *state)
             else if (state->map[j][i].type == CELL_TYPE_path)
             {
                 gsi_rectv(&state->renderer,
-                        gs_v2(i * CELL_W + CELL_W, j * CELL_H + CELL_H),
-                        gs_v2(i * CELL_W, j * CELL_H),
-                        GS_COLOR_BLUE, GS_GRAPHICS_PRIMITIVE_TRIANGLES);
+                          gs_v2(i * CELL_W + CELL_W, j * CELL_H + CELL_H),
+                          gs_v2(i * CELL_W, j * CELL_H),
+                          gs_color(0, 255, 255, 255), GS_GRAPHICS_PRIMITIVE_TRIANGLES);
+            }
+
+            // Render walls
+            if (state->map[j][i].walls[SOUTH])
+            {
+                gsi_line(&state->renderer,
+                         i * CELL_W, (j + 1) * CELL_H,
+                         (i + 1) * CELL_W, (j + 1) * CELL_H,
+                         255, 255, 255, 255);
+            }
+
+            if (state->map[j][i].walls[EAST])
+            {
+                gsi_line(&state->renderer,
+                         (i + 1) * CELL_W, j * CELL_H,
+                         (i + 1) * CELL_W, (j + 1) * CELL_H,
+                         255, 255, 255, 255);
             }
         }
     }
@@ -401,6 +403,13 @@ internal void UpdateApp()
 
         if (state.pathfinding)
         {
+            // Pathfinding
+            if (state.finding_algo == ALGO_dfs)
+            {
+                DFSPathfinding(&state);
+                Sleep(100);
+            }
+
             gsi_rectv(&state.renderer, gs_v2(980.f, 440.f), gs_v2(740.f, 375.f),
                       gs_color(100, 100, 100, 255), GS_GRAPHICS_PRIMITIVE_TRIANGLES);
 
@@ -408,6 +417,8 @@ internal void UpdateApp()
                                gs_v2(980.f, 590.f), gs_v2(740.f, 525.f),
                                gs_color(96, 168, 107, 255)))
             {
+                state.pathfinding = 0;
+                ClearMap(&state);
             }
         }
         else
@@ -415,6 +426,11 @@ internal void UpdateApp()
             if (UIButton(&state.ui, UIIDGen(), "Submit",
                          gs_v2(980.f, 440.f), gs_v2(740.f, 375.f)))
             {
+                if (UIIDEqual(algorithm_option.selected, dfs))
+                {
+                    state.finding_algo = ALGO_dfs;
+                    state.pathfinding = 1;
+                }
             }
 
             if (UICustomButton(&state.ui, UIIDGen(), "Clear", gs_v2(980.f, 540.f),

@@ -4,7 +4,7 @@
 /* Depth First Search */
 typedef struct dfs
 {
-    b32 initalized;
+    b32 initialized;
     linked_list path_stack;
     cell *current;
 } dfs;

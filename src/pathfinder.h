@@ -43,6 +43,14 @@ typedef enum direction
     WEST
 } direction;
 
+typedef enum algorithm
+{
+    ALGO_dfs,
+    ALGO_bfs,
+    ALGO_a_star,
+    ALGO_dijkstra
+} algorithm;
+
 typedef enum cell_type
 {
     CELL_TYPE_open,
@@ -96,6 +104,7 @@ typedef struct app_state
         direction wall;
     } hover;
 
+    algorithm finding_algo;
     b32 pathfinding;
 } app_state; 
 
