@@ -68,7 +68,6 @@ internal void AddValidNeighbor(app_state *state, cell *current, direction wall)
             }
                 
             neighbor_cell.parent = current;
-            neighbor_cell.neighbors = (cell *)malloc(sizeof(cell) * 4);
             neighbor_cell.neighbor_count = 0;
         }
 
@@ -79,17 +78,35 @@ internal void AddValidNeighbor(app_state *state, cell *current, direction wall)
 
 internal void GeneratePath(app_state *state, linked_list *path_stack)
 {
-    cell *current = Pop(path_stack);
+    cell *current = Top(path_stack);
+    Pop(path_stack);
 
+    /*
     while (current != NULL)
     {
         state->map[current->j][current->i].type = CELL_TYPE_path;
-        current = Pop(path_stack);
+        free(current->neighbors);
+        current->neighbor_count = 0;
+        current = Top(path_stack);
+        Pop(path_stack);
     }
+    */
 }
 
 
 /* Depth First Search */
+internal void DFSCleanUp(app_state *state, dfs *dfs, b32 complete)
+{
+    if (complete)
+    {
+        Push(&dfs->path_stack, &state->end);
+        GeneratePath(state, &dfs->path_stack);
+    }
+
+    state->pathfinding = 0; 
+    dfs->initialized = 0;
+}
+
 internal void DFSPathfinding(app_state *state)
 {
     local_persist dfs dfs = {0};
@@ -100,17 +117,25 @@ internal void DFSPathfinding(app_state *state)
         dfs.path_stack = CreateList();
         dfs.current = &state->start;
         dfs.initialized = 1;
-        dfs.current->neighbors = (cell *)malloc(sizeof(cell) * 4);
     }
 
     // Add current cell to stack
     Push(&dfs.path_stack, dfs.current);
     state->map[dfs.current->j][dfs.current->i].type = CELL_TYPE_visited;
 
+    if (dfs.current->neighbor_count > 0)
+    {
+        free(dfs.current->neighbors);
+        dfs.current->neighbor_count = 0;
+    }
+
+    dfs.current->neighbors = (cell *)malloc(sizeof(cell) * 4);
+
     AddValidNeighbor(state, dfs.current, NORTH);
     AddValidNeighbor(state, dfs.current, SOUTH);
     AddValidNeighbor(state, dfs.current, EAST);
     AddValidNeighbor(state, dfs.current, WEST);
+
 
     // No Valid neighbors left
     if (dfs.current->neighbor_count == 0)
@@ -124,7 +149,8 @@ internal void DFSPathfinding(app_state *state)
         }
         else
         {
-            dfs.current = Pop(&dfs.path_stack);
+            dfs.current = Top(&dfs.path_stack);
+            Pop(&dfs.path_stack);
         }
     }
     else
@@ -135,9 +161,6 @@ internal void DFSPathfinding(app_state *state)
 
     if (CellEqual(state->end, *dfs.current))
     {
-        Push(&dfs.path_stack, &state->end);
-        GeneratePath(state, &dfs.path_stack);
-        state->pathfinding = 0; 
-        dfs.initialized = 0;
+        DFSCleanUp(state, &dfs, 1);
     }
 }

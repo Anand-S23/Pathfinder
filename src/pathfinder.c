@@ -344,8 +344,8 @@ internal void InitApp()
 {
     state.command_buffer = gs_command_buffer_new();
     state.renderer = gs_immediate_draw_new();
-    gs_asset_font_load_from_file("./assets/UM_Bold.ttf", &state.header_font, 48);
-    gs_asset_font_load_from_file("./assets/UM.ttf", &state.font, 24);
+    // gs_asset_font_load_from_file("./assets/UM_Bold.ttf", &state.header_font, 48);
+    // gs_asset_font_load_from_file("./assets/UM.ttf", &state.font, 24);
     ResetMap(&state);
     srand(time(0));
 }
@@ -407,7 +407,7 @@ internal void UpdateApp()
             if (state.finding_algo == ALGO_dfs)
             {
                 DFSPathfinding(&state);
-                Sleep(100);
+                Sleep(50);
             }
 
             gsi_rectv(&state.renderer, gs_v2(980.f, 440.f), gs_v2(740.f, 375.f),
@@ -448,8 +448,10 @@ internal void UpdateApp()
     }
     UIEndFrame(&state.ui);
 
+    /*
     gsi_text(&state.renderer, 740.f, 40.f, "Pathfinder",
             &state.header_font, false, 255, 255, 255, 255);
+    */
 
     gs_graphics_submit_command_buffer(&state.command_buffer);
 }

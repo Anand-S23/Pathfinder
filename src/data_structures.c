@@ -29,13 +29,11 @@ internal void Push(linked_list *list, cell *data)
 }
 
 // Removes the first element from the list
-internal cell *Pop(linked_list *list)
+internal void Pop(linked_list *list)
 {
-    cell *data = list->head->data;
     node *temp = list->head;
     list->head = list->head->next;
     free(temp);
-    return data;
 }
     
 // Returns the data of the top node
@@ -49,3 +47,19 @@ internal b32 Empty(linked_list *list)
 {
     return list->head == NULL;
 }
+
+internal void PrintList(linked_list *list)
+{
+    node *current = list->head;
+    int len = 0;
+
+    while (current != NULL)
+    {
+        // printf("(%d, %d) ", current->data->j, current->data->i);
+        current = current->next;
+        ++len;
+    }
+
+    printf("\n---%d---\n", len);
+}
+    
