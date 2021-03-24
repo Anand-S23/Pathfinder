@@ -1,10 +1,8 @@
-# A*
-Implementation of the A* pathfinding algorithm 
+# Pathfinder
+Implementation of the various pathfinding algorithm, such as DFS, BFS, Dijkstra, A*
 
+Old Implementation of A*:
 ![](a_star.GIF)
 
 ## Technology Stack Used: 
-- Made with SDL2, written in C
-
-## TODO:
-- Fix bugs: when there is no path or when the walls are set up in a complex manner the program crashed
+- Made with gunslinger(https://github.com/MrFrenik/gunslinger/), written in C
