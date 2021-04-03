@@ -16,6 +16,7 @@ internal linked_list CreateList()
 {
     linked_list list;
     list.head = NULL;
+    list.tail = NULL;
     return list; 
 } 
 
@@ -23,9 +24,34 @@ internal linked_list CreateList()
 internal void Push(linked_list *list, cell *data)
 {
     node *new_node = CreateNode(data, NULL);
-
     new_node->next = list->head;
     list->head = new_node;
+
+    if (list->tail == NULL)
+    {
+        list->tail = list->head->next;
+    }
+}
+
+// Appends node to the end of the list
+internal void Append(linked_list *list, cell *data)
+{
+    node *new_node = CreateNode(data, NULL);
+
+    if (list->head == NULL)
+    {
+        list->head = new_node;
+    }
+    else if (list->tail == NULL)
+    {
+        list->tail = new_node;
+        list->head->next = list->tail;
+    }
+    else
+    {
+        list->tail->next = new_node;
+        list->tail = list->tail->next;
+    }
 }
 
 // Removes the first element from the list
@@ -33,6 +59,15 @@ internal void Pop(linked_list *list)
 {
     node *temp = list->head;
     list->head = list->head->next;
+
+    if (list->head != NULL)
+    {
+        if (list->head->next == NULL)
+        {
+            list->tail == NULL;
+        }
+    }
+    
     free(temp);
 }
     
@@ -40,6 +75,11 @@ internal void Pop(linked_list *list)
 internal cell *Top(linked_list *list)
 {
     return list->head->data;
+}
+
+internal cell *Bottom(linked_list *list)
+{
+    return list->tail->data;
 }
 
 // Checks if the list is empty

@@ -407,8 +407,13 @@ internal void UpdateApp()
             if (state.finding_algo == ALGO_dfs)
             {
                 DFSPathfinding(&state);
-                Sleep(50);
             }
+            else if (state.finding_algo == ALGO_bfs)
+            {
+                BFSPathfinding(&state);
+            }
+
+            Sleep(50);
 
             gsi_rectv(&state.renderer, gs_v2(980.f, 440.f), gs_v2(740.f, 375.f),
                       gs_color(100, 100, 100, 255), GS_GRAPHICS_PRIMITIVE_TRIANGLES);
@@ -429,6 +434,11 @@ internal void UpdateApp()
                 if (UIIDEqual(algorithm_option.selected, dfs))
                 {
                     state.finding_algo = ALGO_dfs;
+                    state.pathfinding = 1;
+                }
+                else if (UIIDEqual(algorithm_option.selected, bfs))
+                {
+                    state.finding_algo = ALGO_bfs;
                     state.pathfinding = 1;
                 }
             }

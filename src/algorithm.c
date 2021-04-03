@@ -81,8 +81,7 @@ internal void GeneratePath(app_state *state, linked_list *path_stack)
     cell *current = Top(path_stack);
     Pop(path_stack);
 
-    /*
-    while (current != NULL)
+    while (!Empty(path_stack))
     {
         state->map[current->j][current->i].type = CELL_TYPE_path;
         free(current->neighbors);
@@ -90,7 +89,8 @@ internal void GeneratePath(app_state *state, linked_list *path_stack)
         current = Top(path_stack);
         Pop(path_stack);
     }
-    */
+
+    state->map[state->start.j][state->start.i].type = CELL_TYPE_path;
 }
 
 
@@ -164,3 +164,75 @@ internal void DFSPathfinding(app_state *state)
         DFSCleanUp(state, &dfs, 1);
     }
 }
+
+/* Breadth First Search */
+internal void BFSCleanUp(app_state *state, bfs *bfs, b32 complete)
+{
+    if (complete)
+    {
+        // Push(&dfs->path_stack, &state->end);
+        // GeneratePath(state, &dfs->path_stack);
+    }
+
+    state->pathfinding = 0; 
+    bfs->initialized = 0;
+}
+
+internal void BFSPathfinding(app_state *state)
+{
+    local_persist bfs bfs = {0};
+
+    // Initalize dfs
+    if (!bfs.initialized)
+    {
+        bfs.path_queue = CreateList();
+
+        Append(&bfs.path_queue, &state->start);
+        state->map[state->start.j][state->start.i].type = CELL_TYPE_visited;
+
+        bfs.initialized = 1;
+    }
+
+    // Stop pathfinding if queue empty
+    if (Empty(&bfs.path_queue))
+    {
+        state->pathfinding = 0;
+        printf("Here\n");
+    }
+    else
+    {
+        // Make next in queue current 
+        bfs.current = Top(&bfs.path_queue);
+        Pop(&bfs.path_queue);
+
+        // Check if current is the end
+        if (CellEqual(state->end, *bfs.current))
+        {
+            BFSCleanUp(state, &bfs, 1);
+        }
+        else
+        {
+            bfs.current->neighbors = (cell *)malloc(sizeof(cell) * 4);
+            bfs.current->neighbor_count = 0;
+
+            AddValidNeighbor(state, bfs.current, NORTH);
+            AddValidNeighbor(state, bfs.current, SOUTH);
+            AddValidNeighbor(state, bfs.current, EAST);
+            AddValidNeighbor(state, bfs.current, WEST);
+
+            // Add current's neighbors to queue
+            for (int i = 0; i < bfs.current->neighbor_count; ++i)
+            {
+                cell cn = bfs.current->neighbors[i];
+                if (state->map[cn.j][cn.i].type == CELL_TYPE_open)
+                {
+                    state->map[cn.j][cn.i].type == CELL_TYPE_visited;
+                    Append(&bfs.path_queue, &cn);
+                    printf("Append\n");
+                }
+            }
+        }
+    }
+}
+
+
