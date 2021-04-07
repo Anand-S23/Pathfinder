@@ -93,6 +93,17 @@ internal void GeneratePath(app_state *state, linked_list *path_stack)
     state->map[state->start.j][state->start.i].type = CELL_TYPE_path;
 }
 
+internal void GenerateParentPath(app_state *state, linked_list *path)
+{
+    cell *current = Top(path);
+
+    while (current->parent != NULL)
+    {
+        state->map[current->j][current->i].type = CELL_TYPE_path;
+        current = current->parent;
+    }
+}
+
 
 /* Depth First Search */
 internal void DFSCleanUp(app_state *state, dfs *dfs, b32 complete)
@@ -170,8 +181,14 @@ internal void BFSCleanUp(app_state *state, bfs *bfs, b32 complete)
 {
     if (complete)
     {
-        // Push(&dfs->path_stack, &state->end);
-        // GeneratePath(state, &dfs->path_stack);
+        GenerateParentPath(state, &bfs->path_queue);
+
+        while (!Empty(bfs))
+        {
+            cell *current = Top(bfs);
+            free(current->neighbors);
+            Pop(bfs);
+        }
     }
 
     state->pathfinding = 0; 
@@ -197,7 +214,6 @@ internal void BFSPathfinding(app_state *state)
     if (Empty(&bfs.path_queue))
     {
         state->pathfinding = 0;
-        printf("Here\n");
     }
     else
     {
@@ -223,14 +239,17 @@ internal void BFSPathfinding(app_state *state)
             // Add current's neighbors to queue
             for (int i = 0; i < bfs.current->neighbor_count; ++i)
             {
-                cell cn = bfs.current->neighbors[i];
-                if (state->map[cn.j][cn.i].type == CELL_TYPE_open)
+                int cn_i = bfs.current->neighbors[i].i;
+                int cn_j = bfs.current->neighbors[i].j;
+
+                if (state->map[cn_j][cn_i].type == CELL_TYPE_open)
                 {
-                    state->map[cn.j][cn.i].type == CELL_TYPE_visited;
-                    Append(&bfs.path_queue, &cn);
-                    printf("Append\n");
+                    state->map[cn_j][cn_i].type = CELL_TYPE_visited;
+                    Append(&bfs.path_queue, &bfs.current->neighbors[i]);
                 }
             }
+
+            // free(bfs.current->neighbors);
         }
     }
 }
