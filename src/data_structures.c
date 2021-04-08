@@ -59,16 +59,15 @@ internal void Pop(linked_list *list)
 {
     node *temp = list->head;
     list->head = list->head->next;
+    free(temp);
 
-    if (list->head != NULL)
+    if (list->tail != NULL)
     {
         if (list->head->next == NULL)
         {
-            list->tail == NULL;
+            list->tail = NULL;
         }
     }
-    
-    free(temp);
 }
     
 // Returns the data of the top node

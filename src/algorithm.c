@@ -67,8 +67,11 @@ internal void AddValidNeighbor(app_state *state, cell *current, direction wall)
                 neighbor_cell.i = current->i - 1;
             }
                 
-            neighbor_cell.parent = current;
-            neighbor_cell.neighbor_count = 0;
+            if (state->map[neighbor_cell.j][neighbor_cell.i].type == CELL_TYPE_open)
+            {
+                neighbor_cell.parent = current;
+                neighbor_cell.neighbor_count = 0;
+            }
         }
 
         current->neighbors[current->neighbor_count] = neighbor_cell;
@@ -93,15 +96,17 @@ internal void GeneratePath(app_state *state, linked_list *path_stack)
     state->map[state->start.j][state->start.i].type = CELL_TYPE_path;
 }
 
-internal void GenerateParentPath(app_state *state, linked_list *path)
+internal void GenerateParentPath(app_state *state, cell *current_cell)
 {
-    cell *current = Top(path);
+    cell *current = current_cell;
 
     while (current->parent != NULL)
     {
         state->map[current->j][current->i].type = CELL_TYPE_path;
         current = current->parent;
     }
+
+    state->map[current->j][current->i].type = CELL_TYPE_path;
 }
 
 
@@ -181,7 +186,7 @@ internal void BFSCleanUp(app_state *state, bfs *bfs, b32 complete)
 {
     if (complete)
     {
-        GenerateParentPath(state, &bfs->path_queue);
+        GenerateParentPath(state, bfs->current);
 
         while (!Empty(bfs))
         {
