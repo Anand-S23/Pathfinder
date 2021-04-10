@@ -54,6 +54,74 @@ internal void Append(linked_list *list, cell *data)
     }
 }
 
+internal void SortedInsert(linked_list *list, cell *data, b32 min)
+{
+    node *new_node = CreateNode(data, NULL);
+
+    if (min)
+    {
+        if (data->dist < list->head->data->dist)
+        {
+            new_node->next = list->head;
+            list->head = new_node;
+        }
+        else
+        {
+            node *current = list->head;
+
+            b32 inserted = 0;
+
+            while (current != NULL)
+            {
+                if (data->dist < current->next->data->dist)
+                {
+                    new_node->next = current->next;
+                    current->next = new_node;
+                    inserted = 1;
+                    break;
+                }
+            }
+
+            if (!inserted)
+            {
+                list->tail->next = new_node;
+                list->tail = new_node;
+            }
+        }
+    }
+    else
+    {
+        if (data->dist < list->head->data->dist)
+        {
+            new_node->next = list->head;
+            list->head = new_node;
+        }
+        else
+        {
+            node *current = list->head;
+
+            b32 inserted = 0;
+
+            while (current != NULL)
+            {
+                if (data->dist < current->next->data->dist)
+                {
+                    new_node->next = current->next;
+                    current->next = new_node;
+                    inserted = 1;
+                    break;
+                }
+            }
+
+            if (!inserted)
+            {
+                list->tail->next = new_node;
+                list->tail = new_node;
+            }
+        }
+    }
+}
+
 // Removes the first element from the list
 internal void Pop(linked_list *list)
 {

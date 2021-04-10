@@ -1,19 +1,11 @@
 #ifndef ALGORITHM_H
 #define ALGORITHM_H
 
-/* Depth First Search */
-typedef struct dfs
+typedef struct algorithm_t
 {
-    linked_list path_stack;
+    linked_list list;
     cell *current;
     b32 initialized;
-} dfs;
-
-typedef struct bfs
-{
-    linked_list path_queue;
-    cell *current;
-    b32 initialized;
-} bfs;
+} algorithm_t;
 
 #endif

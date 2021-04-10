@@ -71,6 +71,8 @@ typedef struct cell
     int j;
     int i;
 
+    int dist;
+
     int neighbor_count;
     struct cell *parent;
     struct cell *neighbors;
@@ -81,7 +83,6 @@ typedef struct map_node
     cell_type type;
     b32 walls[4];
 } map_node;
-    
 
 typedef struct app_state
 {

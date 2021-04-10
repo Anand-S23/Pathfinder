@@ -79,18 +79,18 @@ internal void AddValidNeighbor(app_state *state, cell *current, direction wall)
     }
 }
 
-internal void GeneratePath(app_state *state, linked_list *path_stack)
+internal void GeneratePath(app_state *state, linked_list *list)
 {
-    cell *current = Top(path_stack);
-    Pop(path_stack);
+    cell *current = Top(list);
+    Pop(list);
 
-    while (!Empty(path_stack))
+    while (!Empty(list))
     {
         state->map[current->j][current->i].type = CELL_TYPE_path;
         free(current->neighbors);
         current->neighbor_count = 0;
-        current = Top(path_stack);
-        Pop(path_stack);
+        current = Top(list);
+        Pop(list);
     }
 
     state->map[state->start.j][state->start.i].type = CELL_TYPE_path;
@@ -111,12 +111,12 @@ internal void GenerateParentPath(app_state *state, cell *current_cell)
 
 
 /* Depth First Search */
-internal void DFSCleanUp(app_state *state, dfs *dfs, b32 complete)
+internal void DFSCleanUp(app_state *state, algorithm_t *dfs, b32 complete)
 {
     if (complete)
     {
-        Push(&dfs->path_stack, &state->end);
-        GeneratePath(state, &dfs->path_stack);
+        Push(&dfs->list, &state->end);
+        GeneratePath(state, &dfs->list);
     }
 
     state->pathfinding = 0; 
@@ -125,18 +125,18 @@ internal void DFSCleanUp(app_state *state, dfs *dfs, b32 complete)
 
 internal void DFSPathfinding(app_state *state)
 {
-    local_persist dfs dfs = {0};
+    local_persist algorithm_t dfs = {0};
 
     // Initalize dfs
     if (!dfs.initialized)
     {
-        dfs.path_stack = CreateList();
+        dfs.list = CreateList();
         dfs.current = &state->start;
         dfs.initialized = 1;
     }
 
     // Add current cell to stack
-    Push(&dfs.path_stack, dfs.current);
+    Push(&dfs.list, dfs.current);
     state->map[dfs.current->j][dfs.current->i].type = CELL_TYPE_visited;
 
     if (dfs.current->neighbor_count > 0)
@@ -157,16 +157,16 @@ internal void DFSPathfinding(app_state *state)
     if (dfs.current->neighbor_count == 0)
     {
         free(dfs.current->neighbors);
-        Pop(&dfs.path_stack);
+        Pop(&dfs.list);
 
-        if (Empty(&dfs.path_stack))
+        if (Empty(&dfs.list))
         {
             state->pathfinding = 0;
         }
         else
         {
-            dfs.current = Top(&dfs.path_stack);
-            Pop(&dfs.path_stack);
+            dfs.current = Top(&dfs.list);
+            Pop(&dfs.list);
         }
     }
     else
@@ -182,7 +182,7 @@ internal void DFSPathfinding(app_state *state)
 }
 
 /* Breadth First Search */
-internal void BFSCleanUp(app_state *state, bfs *bfs, b32 complete)
+internal void BFSCleanUp(app_state *state, algorithm_t *bfs, b32 complete)
 {
     if (complete)
     {
@@ -202,29 +202,29 @@ internal void BFSCleanUp(app_state *state, bfs *bfs, b32 complete)
 
 internal void BFSPathfinding(app_state *state)
 {
-    local_persist bfs bfs = {0};
+    local_persist algorithm_t bfs = {0};
 
     // Initalize dfs
     if (!bfs.initialized)
     {
-        bfs.path_queue = CreateList();
+        bfs.list = CreateList();
 
-        Append(&bfs.path_queue, &state->start);
+        Append(&bfs.list, &state->start);
         state->map[state->start.j][state->start.i].type = CELL_TYPE_visited;
 
         bfs.initialized = 1;
     }
 
     // Stop pathfinding if queue empty
-    if (Empty(&bfs.path_queue))
+    if (Empty(&bfs.list))
     {
         state->pathfinding = 0;
     }
     else
     {
         // Make next in queue current 
-        bfs.current = Top(&bfs.path_queue);
-        Pop(&bfs.path_queue);
+        bfs.current = Top(&bfs.list);
+        Pop(&bfs.list);
 
         // Check if current is the end
         if (CellEqual(state->end, *bfs.current))
@@ -250,13 +250,64 @@ internal void BFSPathfinding(app_state *state)
                 if (state->map[cn_j][cn_i].type == CELL_TYPE_open)
                 {
                     state->map[cn_j][cn_i].type = CELL_TYPE_visited;
-                    Append(&bfs.path_queue, &bfs.current->neighbors[i]);
+                    Append(&bfs.list, &bfs.current->neighbors[i]);
                 }
             }
-
-            // free(bfs.current->neighbors);
         }
     }
 }
 
+/* Dijkstra */
+internal void DijkstraCleanUp()
+{
+}
+
+internal void DijkstraPathFinding(app_state *state)
+{
+    local_persist algorithm_t dj = {0};
+
+    if (!dj.initialized)
+    {
+        dj.list = CreateList();
+        SortedAppend(&dj.list, &state->start, 1);
+
+        dj.initialized = 1;
+    }
+
+    // Stop pathfinding if queue empty
+    if (Empty(&dj.list))
+    {
+        state->pathfinding = 0;
+    }
+    else
+    {
+        // Make next in queue current 
+        dj.current = Top(&dj.list);
+        Pop(&dj.list);
+
+        state->map[dj.current->j][dj.current->i].type = CELL_TYPE_visited;
+
+        // Check if current is the end
+        if (CellEqual(state->end, *dj.current))
+        {
+            // DijkstraCleanUp(state, &dj, 1);
+        }
+        else
+        {
+            dj.current->neighbors = (cell *)malloc(sizeof(cell) * 4);
+            dj.current->neighbor_count = 0;
+
+            AddValidNeighbor(state, dj.current, NORTH);
+            AddValidNeighbor(state, dj.current, SOUTH);
+            AddValidNeighbor(state, dj.current, EAST);
+            AddValidNeighbor(state, dj.current, WEST);
+
+            for (int i = 0; i < dj.current->neighbor_count; ++i)
+            {
+                dj.current->neighbors[i].dist = dj.current->dist + 1;
+                SortedAppend(&dj.list, &state->start, 1);
+            }
+        }
+    }
+}
 
