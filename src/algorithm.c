@@ -258,18 +258,32 @@ internal void BFSPathfinding(app_state *state)
 }
 
 /* Dijkstra */
-internal void DijkstraCleanUp()
+internal void DijkstraCleanUp(app_state *state, algorithm_t *dj, b32 complete)
 {
+    if (complete)
+    {
+        GenerateParentPath(state, dj->current);
+
+        while (!Empty(dj))
+        {
+            cell *current = Top(dj);
+            free(current->neighbors);
+            Pop(dj);
+        }
+    }
+
+    state->pathfinding = 0; 
+    dj->initialized = 0;
 }
 
-internal void DijkstraPathFinding(app_state *state)
+internal void DijkstraPathfinding(app_state *state)
 {
     local_persist algorithm_t dj = {0};
 
     if (!dj.initialized)
     {
         dj.list = CreateList();
-        SortedAppend(&dj.list, &state->start, 1);
+        MinSortedInsert(&dj.list, &state->start);
 
         dj.initialized = 1;
     }
@@ -290,7 +304,7 @@ internal void DijkstraPathFinding(app_state *state)
         // Check if current is the end
         if (CellEqual(state->end, *dj.current))
         {
-            // DijkstraCleanUp(state, &dj, 1);
+            DijkstraCleanUp(state, &dj, 1);
         }
         else
         {
@@ -305,7 +319,7 @@ internal void DijkstraPathFinding(app_state *state)
             for (int i = 0; i < dj.current->neighbor_count; ++i)
             {
                 dj.current->neighbors[i].dist = dj.current->dist + 1;
-                SortedAppend(&dj.list, &state->start, 1);
+                MinSortedInsert(&dj.list, &dj.current->neighbors[i]);
             }
         }
     }

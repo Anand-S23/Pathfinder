@@ -13,6 +13,7 @@ typedef struct linked_list
 {
     node *head; 
     node *tail;
+    int len;
 } linked_list;
 
 #endif

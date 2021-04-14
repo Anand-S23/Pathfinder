@@ -395,10 +395,10 @@ internal void UpdateApp()
                                    "BFS", gs_v2(740.f, 150.f));
 
         ui_id dj = UIOptionButton(&state.ui, &algorithm_option, UIIDGen(),
-                                  "Dj", gs_v2(740.f, 225.f));
+                                  "Dijkstra", gs_v2(740.f, 225.f));
 
         ui_id a_star = UIOptionButton(&state.ui, &algorithm_option, UIIDGen(),
-                                      "A Star", gs_v2(740.f, 300.f));
+                                      "A*", gs_v2(740.f, 300.f));
 
 
         if (state.pathfinding)
@@ -407,13 +407,18 @@ internal void UpdateApp()
             if (state.finding_algo == ALGO_dfs)
             {
                 DFSPathfinding(&state);
+                Sleep(50);
             }
             else if (state.finding_algo == ALGO_bfs)
             {
                 BFSPathfinding(&state);
+                Sleep(50);
             }
-
-            Sleep(50);
+            else if (state.finding_algo == ALGO_dijkstra)
+            {
+                DijkstraPathfinding(&state);
+                Sleep(5);
+            }
 
             gsi_rectv(&state.renderer, gs_v2(980.f, 440.f), gs_v2(740.f, 375.f),
                       gs_color(100, 100, 100, 255), GS_GRAPHICS_PRIMITIVE_TRIANGLES);
@@ -439,6 +444,11 @@ internal void UpdateApp()
                 else if (UIIDEqual(algorithm_option.selected, bfs))
                 {
                     state.finding_algo = ALGO_bfs;
+                    state.pathfinding = 1;
+                }
+                else if (UIIDEqual(algorithm_option.selected, dj))
+                {
+                    state.finding_algo = ALGO_dijkstra;
                     state.pathfinding = 1;
                 }
             }

@@ -14,9 +14,10 @@ internal node *CreateNode(cell *data, node* next)
 // Makes a new empty list
 internal linked_list CreateList()
 {
-    linked_list list;
+    linked_list list = {0};
     list.head = NULL;
     list.tail = NULL;
+    list.len = 0;
     return list; 
 } 
 
@@ -31,6 +32,8 @@ internal void Push(linked_list *list, cell *data)
     {
         list->tail = list->head->next;
     }
+
+    ++list->len;
 }
 
 // Appends node to the end of the list
@@ -52,74 +55,102 @@ internal void Append(linked_list *list, cell *data)
         list->tail->next = new_node;
         list->tail = list->tail->next;
     }
+
+    ++list->len;
 }
 
-internal void SortedInsert(linked_list *list, cell *data, b32 min)
+internal void MinSortedInsert(linked_list *list, cell *data)
 {
     node *new_node = CreateNode(data, NULL);
 
-    if (min)
+    if (list->head == NULL)
     {
-        if (data->dist < list->head->data->dist)
-        {
-            new_node->next = list->head;
-            list->head = new_node;
-        }
-        else
-        {
-            node *current = list->head;
-
-            b32 inserted = 0;
-
-            while (current != NULL)
-            {
-                if (data->dist < current->next->data->dist)
-                {
-                    new_node->next = current->next;
-                    current->next = new_node;
-                    inserted = 1;
-                    break;
-                }
-            }
-
-            if (!inserted)
-            {
-                list->tail->next = new_node;
-                list->tail = new_node;
-            }
-        }
+        list->head = new_node;
+    }
+    else if (data->dist < list->head->data->dist)
+    {
+        new_node->next = list->head;
+        list->head = new_node;
     }
     else
     {
-        if (data->dist < list->head->data->dist)
-        {
-            new_node->next = list->head;
-            list->head = new_node;
-        }
-        else
-        {
-            node *current = list->head;
+        node *current = list->head;
+        b32 inserted = 0;
 
-            b32 inserted = 0;
-
-            while (current != NULL)
+        for (int i = 0; i < list->len - 1; ++i)
+        {
+            if (data->dist < current->next->data->dist)
             {
-                if (data->dist < current->next->data->dist)
-                {
-                    new_node->next = current->next;
-                    current->next = new_node;
-                    inserted = 1;
-                    break;
-                }
+                new_node->next = current->next;
+                current->next = new_node;
+                inserted = 1;
+                break;
             }
+        }
 
-            if (!inserted)
+        if (!inserted)
+        {
+            if (list->tail == NULL)
+            {
+                list->tail = new_node;
+                list->head->next = list->tail;
+            }
+            else
             {
                 list->tail->next = new_node;
                 list->tail = new_node;
             }
         }
     }
+
+    ++list->len;
+}
+
+internal void MaxSortedInsert(linked_list *list, cell *data)
+{
+    node *new_node = CreateNode(data, NULL);
+
+    if (list->head == NULL)
+    {
+        list->head = new_node;
+    }
+    else if (data->dist > list->head->data->dist)
+    {
+        new_node->next = list->head;
+        list->head = new_node;
+    }
+    else
+    {
+        node *current = list->head;
+        b32 inserted = 0;
+
+        for (int i = 0; i < list->len - 1; ++i)
+        {
+            if (data->dist > current->next->data->dist)
+            {
+                new_node->next = current->next;
+                current->next = new_node;
+                inserted = 1;
+                break;
+            }
+        }
+
+        if (!inserted)
+        {
+            if (list->tail == NULL)
+            {
+                list->tail = new_node;
+                list->head->next = list->tail;
+            }
+            else
+            {
+                list->tail->next = new_node;
+                list->tail = new_node;
+            }
+        }
+    }
+
+    ++list->len;
 }
 
 // Removes the first element from the list
@@ -136,6 +167,8 @@ internal void Pop(linked_list *list)
             list->tail = NULL;
         }
     }
+
+    --list->len;
 }
     
 // Returns the data of the top node
